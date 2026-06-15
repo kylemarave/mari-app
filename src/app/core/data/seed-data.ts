@@ -37,10 +37,10 @@ export const NAV_ITEMS: NavItem[] = [
 export const SEED_STATE: AppState = {
   student: {
     initials: 'MA',
-    name: 'Maria Santos',
-    shortName: 'Maria S.',
-    university: 'UST',
-    program: 'BSCS-3A',
+    name: 'Maria Reign',
+    shortName: 'Maria .',
+    university: 'PUP',
+    program: 'BSFT-1A',
     gpa: 3.72,
   },
   countdown: {
