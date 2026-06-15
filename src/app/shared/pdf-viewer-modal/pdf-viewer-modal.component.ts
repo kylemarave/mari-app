@@ -18,7 +18,7 @@ import { LucideX } from '@lucide/angular';
           <div class="flex items-center justify-between gap-3 border-b border-mari-border px-5 py-4">
             <div class="min-w-0">
               <h2 class="truncate text-base font-bold text-mari-text">{{ title() }}</h2>
-              <p class="text-xs text-mari-text-tertiary">PDF preview</p>
+              <p class="text-xs text-mari-text-tertiary">{{ imageMode() ? 'Image preview' : 'PDF preview' }}</p>
             </div>
             <button
               type="button"
@@ -32,7 +32,13 @@ import { LucideX } from '@lucide/angular';
 
           <div class="min-h-0 flex-1 bg-mari-bg-secondary">
             @if (url()) {
-              <iframe [src]="url()" [title]="title()" class="h-[75dvh] w-full border-0"></iframe>
+              @if (imageMode()) {
+                <div class="flex h-[75dvh] items-center justify-center p-4">
+                  <img [src]="url()" [alt]="title()" class="max-h-full max-w-full rounded-lg object-contain shadow-md" />
+                </div>
+              } @else {
+                <iframe [src]="url()" [title]="title()" class="h-[75dvh] w-full border-0"></iframe>
+              }
             } @else {
               <div class="flex h-[75dvh] items-center justify-center px-6 text-center text-sm text-mari-text-secondary">
                 Preview unavailable for this file.
@@ -48,6 +54,7 @@ export class PdfViewerModalComponent {
   readonly open = input(false);
   readonly title = input('');
   readonly url = input<SafeResourceUrl | string | null>(null);
+  readonly imageMode = input(false);
 
   readonly closed = output<void>();
 

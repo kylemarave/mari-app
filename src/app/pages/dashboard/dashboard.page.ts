@@ -88,11 +88,11 @@ import { FlashcardComponent } from '../../shared/flashcard/flashcard.component';
           <div class="mt-1 truncate text-lg font-semibold text-mari-text">{{ stats().nextClass }}</div>
           <div class="mt-2 text-xs text-mari-text-tertiary">Today's schedule</div>
         </a>
-        <div class="mari-stat">
+        <a routerLink="/settings" class="mari-stat group transition-shadow hover:shadow-md">
           <div class="mari-stat-label">GPA</div>
           <div class="mari-stat-value mt-1 text-mari-primary">{{ stats().gpa }}</div>
           <div class="mt-2 text-xs text-mari-text-tertiary">{{ store.student().program }}</div>
-        </div>
+        </a>
         <a routerLink="/study-sets" class="mari-stat group transition-shadow hover:shadow-md">
           <div class="mari-stat-label">Study progress</div>
           <div class="mari-stat-value mt-1">{{ stats().studyProgress }}%</div>
@@ -128,7 +128,7 @@ import { FlashcardComponent } from '../../shared/flashcard/flashcard.component';
             </div>
             <a routerLink="/tasks" class="mari-link-action">Open tasks →</a>
           </div>
-          <app-kanban-board [columns]="store.kanbanColumns()" />
+          <app-kanban-board [columns]="store.kanbanColumns()" [editable]="true" />
         </section>
 
         <!-- Upcoming tasks -->
@@ -142,7 +142,7 @@ import { FlashcardComponent } from '../../shared/flashcard/flashcard.component';
             </div>
             <a routerLink="/tasks" class="mari-link-action">See all</a>
           </div>
-          <app-task-list [tasks]="store.activeTasks().slice(0, 4)" [compact]="true" [editable]="false" />
+          <app-task-list [tasks]="store.activeTasks().slice(0, 4)" [compact]="true" [editable]="true" />
         </section>
 
         <!-- Schedule -->
@@ -175,6 +175,13 @@ import { FlashcardComponent } from '../../shared/flashcard/flashcard.component';
           </div>
           @if (featuredDeck(); as deck) {
             <app-flashcard [deck]="deck" [deckId]="deck.id" [compact]="true" />
+          } @else {
+            <div class="rounded-[14px] border border-dashed border-mari-border py-8 text-center">
+              <p class="text-sm text-mari-text-secondary">No study sets yet</p>
+              <a routerLink="/study-sets" class="mari-btn-primary mt-3 inline-flex text-xs">
+                Create from PDF
+              </a>
+            </div>
           }
         </section>
 
@@ -205,7 +212,7 @@ import { FlashcardComponent } from '../../shared/flashcard/flashcard.component';
               Saved links
             </div>
           </div>
-          <app-bookmark-panel [bookmarks]="store.bookmarks()" [grid]="true" />
+          <app-bookmark-panel [bookmarks]="store.bookmarks()" [grid]="true" [editable]="true" />
         </section>
       </div>
     </div>

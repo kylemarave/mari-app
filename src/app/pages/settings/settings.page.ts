@@ -27,6 +27,25 @@ import { VirtualIdCardComponent } from '../../shared/virtual-id-card/virtual-id-
         <app-virtual-id-card [profile]="form" variant="mobile-header" />
       </section>
 
+      <section class="mari-surface-elevated mb-5 space-y-4 p-5">
+        <h2 class="text-sm font-bold uppercase tracking-wide text-mari-text-tertiary">Exam countdown</h2>
+        <label class="block">
+          <span class="mb-1 block text-xs font-semibold text-mari-text-tertiary">Label</span>
+          <input type="text" [(ngModel)]="countdownForm.label" name="cdLabel" class="mari-input" />
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="block">
+            <span class="mb-1 block text-xs font-semibold text-mari-text-tertiary">Days left</span>
+            <input type="number" min="0" [(ngModel)]="countdownForm.daysLeft" name="cdDays" class="mari-input" />
+          </label>
+          <label class="block">
+            <span class="mb-1 block text-xs font-semibold text-mari-text-tertiary">Prepared %</span>
+            <input type="number" min="0" max="100" [(ngModel)]="countdownForm.progress" name="cdProgress" class="mari-input" />
+          </label>
+        </div>
+        <button type="button" (click)="saveCountdown()" class="mari-btn-secondary w-full">Update countdown</button>
+      </section>
+
       <form (ngSubmit)="save()" class="mari-surface space-y-4 p-5">
         <h2 class="text-sm font-bold uppercase tracking-wide text-mari-text-tertiary">Profile details</h2>
 
@@ -87,7 +106,12 @@ import { VirtualIdCardComponent } from '../../shared/virtual-id-card/virtual-id-
 export class SettingsPage {
   private readonly store = inject(MariStoreService);
   protected form = { ...this.store.student() };
+  protected countdownForm = { ...this.store.countdown() };
   protected readonly saved = signal(false);
+
+  saveCountdown(): void {
+    this.store.updateCountdown(this.countdownForm);
+  }
 
   save(): void {
     this.store.updateStudent(this.form);
@@ -99,6 +123,7 @@ export class SettingsPage {
     if (confirm('Reset all app data to defaults?')) {
       this.store.resetProgress();
       this.form = { ...this.store.student() };
+      this.countdownForm = { ...this.store.countdown() };
     }
   }
 }

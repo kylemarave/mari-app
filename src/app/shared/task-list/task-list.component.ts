@@ -6,6 +6,7 @@ import {
   LucideChevronRight,
   LucideClock,
   LucidePlus,
+  LucideTrash2,
 } from '@lucide/angular';
 import { MariStoreService } from '../../core/services/mari-store.service';
 import { PRIORITY_STYLES, TaskItem } from '../../core/models/mari.models';
@@ -19,6 +20,7 @@ import { PRIORITY_STYLES, TaskItem } from '../../core/models/mari.models';
     LucideChevronRight,
     LucideClock,
     LucidePlus,
+    LucideTrash2,
   ],
   template: `
     <div class="flex flex-col gap-2">
@@ -90,6 +92,25 @@ import { PRIORITY_STYLES, TaskItem } from '../../core/models/mari.models';
             >
               {{ priorityStyle(task).label }}
             </span>
+
+            @if (editable() && !compact()) {
+              <button
+                type="button"
+                (click)="cycleStatus(task.id)"
+                class="shrink-0 rounded-full bg-mari-bg-secondary px-2 py-1 text-[10px] font-semibold text-mari-text-secondary hover:bg-mari-primary-light hover:text-mari-primary-dark"
+                title="Move to next status"
+              >
+                {{ statusLabel(task) }}
+              </button>
+              <button
+                type="button"
+                (click)="store.deleteTask(task.id)"
+                class="shrink-0 rounded-[8px] p-1.5 text-mari-text-tertiary opacity-0 transition-all hover:bg-accent-coral-bg hover:text-accent-coral-text group-hover:opacity-100"
+                aria-label="Delete task"
+              >
+                <svg lucideTrash2 [size]="14"></svg>
+              </button>
+            }
           </div>
 
           @if (canExpand(task) && isExpanded(task.id)) {
@@ -224,5 +245,15 @@ export class TaskListComponent {
   priorityStyle(task: TaskItem) {
     const priority = task.done ? 'done' : task.priority;
     return PRIORITY_STYLES[priority];
+  }
+
+  statusLabel(task: TaskItem): string {
+    if (task.done || task.status === 'done') return 'Reopen';
+    if (task.status === 'in-progress') return 'Done';
+    return 'Start';
+  }
+
+  cycleStatus(taskId: string): void {
+    this.store.advanceTaskStatus(taskId);
   }
 }

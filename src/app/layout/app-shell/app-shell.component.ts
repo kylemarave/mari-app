@@ -62,7 +62,7 @@ import { UtilitySidebarComponent } from '../../shared/utility-sidebar/utility-si
               <a
                 routerLink="/tasks"
                 class="relative hidden rounded-[10px] p-2.5 text-mari-text-secondary transition-colors hover:bg-mari-bg-secondary hover:text-mari-text sm:flex"
-                aria-label="Notifications"
+                aria-label="Tasks"
               >
                 <svg lucideBell [size]="20"></svg>
                 @if (store.highPriorityTasks().length; as count) {

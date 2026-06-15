@@ -1,13 +1,15 @@
 import { Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { LucideAlarmClock, LucideTarget } from '@lucide/angular';
 import { CountdownEvent } from '../../core/models/mari.models';
 
 @Component({
   selector: 'app-countdown-banner',
-  imports: [LucideAlarmClock, LucideTarget],
+  imports: [RouterLink, LucideAlarmClock, LucideTarget],
   template: `
-    <div
-      class="flex flex-wrap items-center gap-3 rounded-[14px] border border-mari-primary-muted/50 bg-gradient-to-r from-mari-primary-light via-white to-mari-primary-light/60 px-4 py-3 shadow-sm"
+    <a
+      routerLink="/settings"
+      class="flex flex-wrap items-center gap-3 rounded-[14px] border border-mari-primary-muted/50 bg-gradient-to-r from-mari-primary-light via-white to-mari-primary-light/60 px-4 py-3 shadow-sm transition-shadow hover:shadow-md"
     >
       <div
         class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-mari-primary text-white shadow-sm"
@@ -37,7 +39,7 @@ import { CountdownEvent } from '../../core/models/mari.models';
       >
         {{ event().daysLeft }} days left
       </div>
-    </div>
+    </a>
   `,
 })
 export class CountdownBannerComponent {

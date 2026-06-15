@@ -14,6 +14,7 @@ import {
   CourseAccent,
   CourseFile,
   CourseFolder,
+  CountdownEvent,
 } from '../models/mari.models';
 import { CourseFileStorageService } from './course-file-storage.service';
 
@@ -45,19 +46,19 @@ export class MariStoreService {
         id: 'todo',
         title: `To-do (${todo.length})`,
         accent: 'amber',
-        tasks: todo.map((t) => t.title),
+        tasks: todo.map((t) => ({ id: t.id, title: t.title })),
       },
       {
         id: 'progress',
         title: 'In progress',
         accent: 'blue',
-        tasks: inProgress.map((t) => t.title),
+        tasks: inProgress.map((t) => ({ id: t.id, title: t.title })),
       },
       {
         id: 'done',
         title: 'Done',
         accent: 'teal',
-        tasks: done.map((t) => t.title),
+        tasks: done.map((t) => ({ id: t.id, title: t.title })),
       },
     ];
   });
@@ -160,6 +161,44 @@ export class MariStoreService {
 
   deleteTask(taskId: string): void {
     this.patch({ tasks: this.state().tasks.filter((t) => t.id !== taskId) });
+  }
+
+  updateTaskStatus(taskId: string, status: TaskStatus): void {
+    const tasks = this.state().tasks.map((task) => {
+      if (task.id !== taskId) return task;
+      const done = status === 'done';
+      return {
+        ...task,
+        status,
+        done,
+        priority: done ? ('done' as TaskPriority) : task.priority === 'done' ? 'medium' : task.priority,
+      };
+    });
+    this.patch({ tasks });
+  }
+
+  advanceTaskStatus(taskId: string): void {
+    const task = this.state().tasks.find((t) => t.id === taskId);
+    if (!task) return;
+    if (task.done || task.status === 'done') {
+      this.updateTaskStatus(taskId, 'todo');
+      return;
+    }
+    if (task.status === 'todo') {
+      this.updateTaskStatus(taskId, 'in-progress');
+      return;
+    }
+    if (task.status === 'in-progress') {
+      this.updateTaskStatus(taskId, 'done');
+    }
+  }
+
+  deleteBookmark(bookmarkId: string): void {
+    this.patch({ bookmarks: this.state().bookmarks.filter((b) => b.id !== bookmarkId) });
+  }
+
+  updateCountdown(countdown: Partial<CountdownEvent>): void {
+    this.patch({ countdown: { ...this.state().countdown, ...countdown } });
   }
 
   addBookmark(link: Omit<BookmarkLink, 'id'>): void {

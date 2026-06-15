@@ -17,6 +17,7 @@ export interface StudentProfile {
   university: string;
   program: string;
   gpa: number;
+  logoUrl?: string;
 }
 
 export interface CountdownEvent {
@@ -48,7 +49,12 @@ export interface KanbanColumn {
   id: string;
   title: string;
   accent: KanbanAccent;
-  tasks: string[];
+  tasks: KanbanTaskRef[];
+}
+
+export interface KanbanTaskRef {
+  id: string;
+  title: string;
 }
 
 export interface ScheduleBlock {

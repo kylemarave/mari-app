@@ -48,7 +48,7 @@ import { PdfViewerModalComponent } from '../pdf-viewer-modal/pdf-viewer-modal.co
               type="button"
               (click)="openPreview(file)"
               class="flex min-w-0 flex-1 items-center gap-3 text-left"
-              [class]="isPdf(file) ? 'cursor-pointer' : 'cursor-default'"
+              [class]="isPreviewable(file) ? 'cursor-pointer' : 'cursor-default'"
             >
               <div class="flex size-10 shrink-0 items-center justify-center rounded-[12px] bg-mari-primary-light text-mari-primary-dark">
                 @if (file.type === 'PNG' || file.type === 'JPG') {
@@ -68,12 +68,12 @@ import { PdfViewerModalComponent } from '../pdf-viewer-modal/pdf-viewer-modal.co
             </button>
 
             <div class="flex shrink-0 items-center gap-1">
-              @if (isPdf(file)) {
+              @if (isPreviewable(file)) {
                 <button
                   type="button"
                   (click)="openPreview(file)"
                   class="rounded-[8px] p-2 text-mari-text-tertiary hover:bg-mari-primary-light hover:text-mari-primary-dark"
-                  aria-label="View PDF"
+                  aria-label="View file"
                 >
                   <svg lucideEye [size]="16"></svg>
                 </button>
@@ -122,6 +122,7 @@ import { PdfViewerModalComponent } from '../pdf-viewer-modal/pdf-viewer-modal.co
         [open]="viewerOpen()"
         [title]="viewerTitle()"
         [url]="viewerSafeUrl()"
+        [imageMode]="viewerImageMode()"
         (closed)="closePreview()"
       />
     </div>
@@ -142,6 +143,7 @@ export class FileRepoComponent {
   protected readonly viewerOpen = signal(false);
   protected readonly viewerTitle = signal('');
   protected readonly viewerSafeUrl = signal<SafeResourceUrl | null>(null);
+  protected readonly viewerImageMode = signal(false);
   private previewObjectUrl: string | null = null;
 
   protected readonly sortOptions: { id: FileSort; label: string }[] = [
@@ -160,15 +162,24 @@ export class FileRepoComponent {
     });
   });
 
+  isPreviewable(file: CourseFile): boolean {
+    return Boolean(file.stored && (this.isPdf(file) || this.isImage(file)));
+  }
+
   isPdf(file: CourseFile): boolean {
     return file.type === 'PDF' || file.mimeType === 'application/pdf';
   }
 
+  isImage(file: CourseFile): boolean {
+    return file.type === 'PNG' || file.type === 'JPG' || file.type === 'JPEG' || file.mimeType?.startsWith('image/') === true;
+  }
+
   async openPreview(file: CourseFile): Promise<void> {
-    if (!this.isPdf(file)) return;
+    if (!this.isPreviewable(file)) return;
 
     this.closePreview();
     this.viewerTitle.set(file.name);
+    this.viewerImageMode.set(this.isImage(file));
 
     if (!file.stored) {
       this.viewerSafeUrl.set(null);
@@ -197,6 +208,7 @@ export class FileRepoComponent {
     this.viewerOpen.set(false);
     this.viewerTitle.set('');
     this.viewerSafeUrl.set(null);
+    this.viewerImageMode.set(false);
     if (this.previewObjectUrl) {
       this.fileStorage.revokeObjectUrl(this.previewObjectUrl);
       this.previewObjectUrl = null;

@@ -48,7 +48,7 @@ import { FileRepoComponent } from '../../shared/file-repo/file-repo.component';
                 Bookmark links
               </div>
             </div>
-            <app-bookmark-panel [bookmarks]="bookmarks()" />
+            <app-bookmark-panel [bookmarks]="bookmarks()" [editable]="true" [courseId]="courseId()" />
           </section>
         </div>
       } @else {
