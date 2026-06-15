@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Flashcard } from '../models/mari.models';
+import { Flashcard, GeminiStudySetResult } from '../models/mari.models';
 import { createId } from '../data/seed-data';
 
-export interface PdfReviewResult {
-  fileName: string;
-  title: string;
+export interface PdfReviewResult extends GeminiStudySetResult {
   cards: Flashcard[];
+  source: 'gemini' | 'regex';
   excerpt: string;
-  pageCount: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -26,18 +24,92 @@ export class PdfFlashcardService {
       );
     }
 
-    const cards = this.generateFlashcards(cleaned);
-    if (!cards.length) {
-      throw new Error('No study cards could be generated from this PDF. Try a document with clearer headings or definitions.');
+    try {
+      const gemini = await this.generateViaGemini(cleaned, file.name, pageCount);
+      const cards = this.flattenSectionCards(gemini.sections);
+      if (!cards.length) {
+        throw new Error('No flashcards returned from AI.');
+      }
+      return {
+        ...gemini,
+        cards,
+        source: 'gemini',
+        excerpt: gemini.overview,
+      };
+    } catch {
+      const cards = this.generateFlashcards(cleaned);
+      if (!cards.length) {
+        throw new Error(
+          'No study cards could be generated from this PDF. Try a document with clearer headings or definitions.',
+        );
+      }
+      const title = this.titleFromFileName(file.name);
+      const overview = cleaned.slice(0, 280).trim() + (cleaned.length > 280 ? '…' : '');
+      return {
+        title,
+        overview,
+        sections: [
+          {
+            heading: 'Key concepts',
+            summary: overview,
+            keyPoints: cards.slice(0, 5).map((c) => c.question),
+            cards: cards.map((c) => ({
+              type: 'fact' as const,
+              question: c.question,
+              answer: c.answer,
+            })),
+          },
+        ],
+        fileName: file.name,
+        pageCount,
+        cards,
+        source: 'regex',
+        excerpt: overview,
+      };
+    }
+  }
+
+  private async generateViaGemini(
+    text: string,
+    fileName: string,
+    pageCount: number,
+  ): Promise<GeminiStudySetResult> {
+    const res = await fetch('/api/generate-study-set', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, fileName, pageCount }),
+    });
+
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { error?: string };
+      throw new Error(err.error ?? `AI request failed (${res.status})`);
     }
 
-    return {
-      fileName: file.name,
-      title: this.titleFromFileName(file.name),
-      cards,
-      excerpt: cleaned.slice(0, 280).trim() + (cleaned.length > 280 ? '…' : ''),
-      pageCount,
-    };
+    const data = (await res.json()) as GeminiStudySetResult;
+    if (!data.sections?.length) {
+      throw new Error('AI returned no sections.');
+    }
+    return data;
+  }
+
+  private flattenSectionCards(sections: GeminiStudySetResult['sections']): Flashcard[] {
+    const cards: Flashcard[] = [];
+    const seen = new Set<string>();
+
+    for (const section of sections) {
+      for (const card of section.cards ?? []) {
+        const key = card.question.toLowerCase().trim();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        cards.push({
+          id: createId('c'),
+          question: card.question.trim(),
+          answer: card.answer.trim(),
+        });
+      }
+    }
+
+    return cards.slice(0, 40);
   }
 
   private async extractText(file: File): Promise<{ text: string; pageCount: number }> {

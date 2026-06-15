@@ -68,7 +68,8 @@
               "buildTarget": "mari-app:build:production"
             },
             "development": {
-              "buildTarget": "mari-app:build:development"
+              "buildTarget": "mari-app:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

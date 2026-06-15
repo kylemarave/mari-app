@@ -65,7 +65,7 @@ import { FlashcardComponent } from '../../shared/flashcard/flashcard.component';
           </a>
           <a
             routerLink="/study-sets"
-            class="inline-flex items-center gap-1.5 rounded-[12px] border border-mari-primary/30 bg-white/80 px-4 py-2.5 text-sm font-semibold text-mari-primary-dark backdrop-blur transition-colors hover:bg-white"
+            class="inline-flex items-center gap-1.5 rounded-[12px] border border-mari-primary/30 bg-mari-bg/80 px-4 py-2.5 text-sm font-semibold text-mari-primary-dark backdrop-blur transition-colors hover:bg-mari-bg"
           >
             Study now
             <svg lucideArrowRight [size]="16"></svg>

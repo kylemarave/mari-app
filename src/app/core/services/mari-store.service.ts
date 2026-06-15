@@ -1,4 +1,4 @@
-import { computed, Injectable, inject, signal } from '@angular/core';
+    import { computed, Injectable, inject, signal } from '@angular/core';
 import { createId, SEED_STATE } from '../data/seed-data';
 import {
   AppState,
@@ -218,6 +218,13 @@ export class MariStoreService {
       courseFiles: { ...this.state().courseFiles, [newCourse.id]: [] },
     });
     return newCourse;
+  }
+
+  updateCourse(courseId: string, patch: Partial<Omit<CourseFolder, 'id' | 'fileCount'>>): void {
+    const courses = this.state().courses.map((course) =>
+      course.id === courseId ? { ...course, ...patch } : course,
+    );
+    this.patch({ courses });
   }
 
   deleteCourse(courseId: string): void {

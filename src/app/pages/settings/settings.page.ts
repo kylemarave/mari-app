@@ -1,19 +1,46 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { LucideRotateCcw, LucideSave, LucideUserCog } from '@lucide/angular';
+import { LucideMoon, LucideRotateCcw, LucideSave, LucideSun, LucideUserCog } from '@lucide/angular';
 import { MariStoreService } from '../../core/services/mari-store.service';
+import { ThemePreference, ThemeService } from '../../core/services/theme.service';
 import { VirtualIdCardComponent } from '../../shared/virtual-id-card/virtual-id-card.component';
 
 @Component({
   selector: 'app-settings-page',
-  imports: [FormsModule, VirtualIdCardComponent, RouterLink, LucideRotateCcw, LucideSave, LucideUserCog],
+  imports: [FormsModule, VirtualIdCardComponent, RouterLink, LucideRotateCcw, LucideSave, LucideUserCog, LucideSun, LucideMoon],
   template: `
     <div class="mari-page mx-auto max-w-xl">
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-mari-text sm:text-3xl">Settings</h1>
-        <p class="mt-1 text-sm text-mari-text-secondary">Profile, identity card & app data</p>
+        <p class="mt-1 text-sm text-mari-text-secondary">Profile, appearance & app data</p>
       </div>
+
+      <section class="mari-surface-elevated mb-5 p-5">
+        <h2 class="mb-3 text-sm font-bold uppercase tracking-wide text-mari-text-tertiary">Appearance</h2>
+        <div class="flex gap-1 rounded-[12px] border border-mari-border bg-mari-bg-secondary p-1">
+          @for (opt of themeOptions; track opt.id) {
+            <button
+              type="button"
+              (click)="setTheme(opt.id)"
+              class="flex flex-1 items-center justify-center gap-1.5 rounded-[10px] py-2.5 text-xs font-bold uppercase tracking-wide transition-all"
+              [class]="theme.preference() === opt.id
+                ? 'bg-mari-bg text-mari-primary shadow-sm'
+                : 'text-mari-text-secondary hover:text-mari-text'"
+            >
+              @if (opt.id === 'light') {
+                <svg lucideSun [size]="14"></svg>
+              } @else if (opt.id === 'dark') {
+                <svg lucideMoon [size]="14"></svg>
+              }
+              {{ opt.label }}
+            </button>
+          }
+        </div>
+        <p class="mt-2 text-xs text-mari-text-tertiary">
+          System follows your device light or dark preference.
+        </p>
+      </section>
 
       <section class="mari-surface-elevated mb-5 p-5">
         <div class="mari-section-head">
@@ -93,7 +120,11 @@ import { VirtualIdCardComponent } from '../../shared/virtual-id-card/virtual-id-
       <section class="mt-5 rounded-[16px] border border-accent-coral/40 bg-accent-coral-bg/40 p-5">
         <h2 class="font-semibold text-accent-coral-text">Reset app data</h2>
         <p class="mt-1 text-sm text-mari-text-secondary">Restore defaults for tasks, study progress, and profile.</p>
-        <button type="button" (click)="reset()" class="mt-3 inline-flex items-center gap-2 rounded-[12px] border border-accent-coral bg-white px-4 py-2 text-sm font-semibold text-accent-coral-text hover:bg-accent-coral-bg">
+        <button
+          type="button"
+          (click)="reset()"
+          class="mt-3 inline-flex items-center gap-2 rounded-[12px] border border-accent-coral bg-mari-bg px-4 py-2 text-sm font-semibold text-accent-coral-text hover:bg-accent-coral-bg"
+        >
           <svg lucideRotateCcw [size]="16"></svg>
           Reset everything
         </button>
@@ -105,9 +136,20 @@ import { VirtualIdCardComponent } from '../../shared/virtual-id-card/virtual-id-
 })
 export class SettingsPage {
   private readonly store = inject(MariStoreService);
+  protected readonly theme = inject(ThemeService);
   protected form = { ...this.store.student() };
   protected countdownForm = { ...this.store.countdown() };
   protected readonly saved = signal(false);
+
+  protected readonly themeOptions: { id: ThemePreference; label: string }[] = [
+    { id: 'light', label: 'Light' },
+    { id: 'dark', label: 'Dark' },
+    { id: 'system', label: 'System' },
+  ];
+
+  setTheme(preference: ThemePreference): void {
+    this.theme.setPreference(preference);
+  }
 
   saveCountdown(): void {
     this.store.updateCountdown(this.countdownForm);

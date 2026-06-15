@@ -35,7 +35,7 @@ import { CountdownEvent } from '../../core/models/mari.models';
         </span>
       </div>
       <div
-        class="mari-chip shrink-0 bg-white/90 text-mari-primary-dark ring-1 ring-mari-primary-muted/40"
+        class="mari-chip shrink-0 bg-mari-bg/90 text-mari-primary-dark ring-1 ring-mari-primary-muted/40"
       >
         {{ event().daysLeft }} days left
       </div>

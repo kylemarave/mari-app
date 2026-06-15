@@ -1,59 +1,35 @@
-# MariApp
+## Mari App
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.14.
+Student productivity app with AI-powered PDF study sets (Gemini), course folders with custom hex colors, and dark mode.
 
-## Development server
-
-To start a local development server, run:
+### Development
 
 ```bash
-ng serve
+npm install
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+For AI PDF import during local dev, run the API server in a second terminal (proxied via `proxy.conf.json`):
 
 ```bash
-ng generate component component-name
+# Set GEMINI_API_KEY in .env or environment
+npm run dev:api
+npm start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Copy `.env.example` to `.env` and set `GEMINI_API_KEY` from [Google AI Studio](https://aistudio.google.com/apikey).
+
+### Features
+
+- **Study Sets / PDF import** — Upload a PDF on Study Sets; Mari uses Gemini to build a Gizmo-style reviewer (overview, sections, key points) and flashcards. Falls back to local heuristics if the API is unavailable.
+- **Course folders** — Preset accents or custom `#RRGGBB` colors when creating or editing a folder.
+- **Dark mode** — Settings → Appearance (Light / Dark / System), persisted in `localStorage`.
+
+### Production SSR
 
 ```bash
-ng generate --help
+npm run build
+npm run serve:ssr:mari-app
 ```
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+The Express server in `src/server.ts` exposes `POST /api/generate-study-set` when `GEMINI_API_KEY` is set.

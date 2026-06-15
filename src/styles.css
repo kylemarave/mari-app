@@ -45,6 +45,45 @@
   --shadow-mari-lg: 0 8px 24px rgb(26 27 30 / 0.08), 0 4px 8px rgb(83 74 183 / 0.06);
 }
 
+html.dark {
+  --color-mari-primary: #7b72e8;
+  --color-mari-primary-dark: #9d96f0;
+  --color-mari-primary-light: #2a2840;
+  --color-mari-primary-muted: #4a4570;
+
+  --color-accent-teal: #34c759;
+  --color-accent-teal-bg: #1a3328;
+  --color-accent-teal-text: #a8e6cf;
+
+  --color-accent-coral: #ff7a59;
+  --color-accent-coral-bg: #3d2a24;
+  --color-accent-coral-text: #ffc9b8;
+
+  --color-accent-amber: #ffb340;
+  --color-accent-amber-bg: #3d3420;
+  --color-accent-amber-text: #ffe4a8;
+
+  --color-accent-sage: #8bc34a;
+  --color-accent-sage-bg: #2a3318;
+  --color-accent-sage-text: #dcedc8;
+
+  --color-accent-blue-bg: #1e2a38;
+  --color-accent-blue-text: #90caf9;
+
+  --color-mari-bg: #1a1b1e;
+  --color-mari-bg-secondary: #25262b;
+  --color-mari-bg-tertiary: #2f3036;
+  --color-mari-text: #f0f0f2;
+  --color-mari-text-secondary: #b4b6bc;
+  --color-mari-text-tertiary: #8b8f97;
+  --color-mari-border: #3a3b40;
+  --color-mari-border-secondary: #4a4b52;
+
+  --shadow-mari-sm: 0 1px 2px rgb(0 0 0 / 0.2), 0 1px 3px rgb(0 0 0 / 0.15);
+  --shadow-mari-md: 0 4px 12px rgb(0 0 0 / 0.25), 0 2px 4px rgb(0 0 0 / 0.15);
+  --shadow-mari-lg: 0 8px 24px rgb(0 0 0 / 0.3), 0 4px 8px rgb(0 0 0 / 0.2);
+}
+
 @layer base {
   html {
     font-family: var(--font-sans);
@@ -118,6 +157,10 @@
     box-shadow: var(--shadow-mari-md);
   }
 
+  html.dark .mari-hero {
+    background: linear-gradient(135deg, #2a2840 0%, var(--color-mari-bg) 45%, #1e2a38 100%);
+  }
+
   .mari-chip {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
   }
@@ -135,11 +178,22 @@
   }
 
   .mari-bg-mesh {
-    background-color: #f5f5f7;
+    background-color: var(--color-mari-bg-secondary);
     background-image:
-      radial-gradient(at 0% 0%, rgb(238 237 254 / 0.9) 0, transparent 50%),
-      radial-gradient(at 100% 0%, rgb(230 241 251 / 0.7) 0, transparent 45%),
-      radial-gradient(at 50% 100%, rgb(225 245 238 / 0.5) 0, transparent 50%);
+      radial-gradient(at 0% 0%, rgb(83 74 183 / 0.12) 0, transparent 50%),
+      radial-gradient(at 100% 0%, rgb(29 158 117 / 0.08) 0, transparent 45%),
+      radial-gradient(at 50% 100%, rgb(83 74 183 / 0.06) 0, transparent 50%);
+  }
+
+  html.dark .mari-bg-mesh {
+    background-color: var(--color-mari-bg-secondary);
+    background-image:
+      radial-gradient(at 0% 0%, rgb(83 74 183 / 0.15) 0, transparent 50%),
+      radial-gradient(at 100% 0%, rgb(29 158 117 / 0.08) 0, transparent 45%);
+  }
+
+  html.dark .mari-hero {
+    background: linear-gradient(135deg, #2a2840 0%, var(--color-mari-bg) 45%, #1e2a38 100%);
   }
 
   .mari-scroll-area {

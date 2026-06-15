@@ -79,6 +79,8 @@ export interface CourseFolder {
   professor: string;
   fileCount: number;
   accent: CourseAccent;
+  /** Custom folder color as #RRGGBB when set; overrides preset accent styling. */
+  customColor?: string;
 }
 
 export interface CourseFile {
@@ -98,6 +100,29 @@ export interface BookmarkLink {
   category: string;
   favicon: string;
   courseId?: string;
+}
+
+export type FlashcardType = 'definition' | 'concept' | 'process' | 'fact';
+
+export interface AiFlashcardDraft {
+  type: FlashcardType;
+  question: string;
+  answer: string;
+}
+
+export interface ReviewSection {
+  heading: string;
+  summary: string;
+  keyPoints: string[];
+  cards: AiFlashcardDraft[];
+}
+
+export interface GeminiStudySetResult {
+  title: string;
+  overview: string;
+  sections: ReviewSection[];
+  fileName: string;
+  pageCount: number;
 }
 
 export interface Flashcard {
