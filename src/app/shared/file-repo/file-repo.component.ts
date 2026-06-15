@@ -1,10 +1,27 @@
-import { Component, computed, input, signal } from '@angular/core';
-import { LucideFileText, LucideImage, LucideUpload } from '@lucide/angular';
+import { Component, computed, inject, input, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import {
+  LucideEye,
+  LucideFileText,
+  LucideImage,
+  LucideTrash2,
+  LucideUpload,
+} from '@lucide/angular';
 import { CourseFile, FileSort } from '../../core/models/mari.models';
+import { CourseFileStorageService } from '../../core/services/course-file-storage.service';
+import { MariStoreService } from '../../core/services/mari-store.service';
+import { PdfViewerModalComponent } from '../pdf-viewer-modal/pdf-viewer-modal.component';
 
 @Component({
   selector: 'app-file-repo',
-  imports: [LucideFileText, LucideImage, LucideUpload],
+  imports: [
+    LucideFileText,
+    LucideImage,
+    LucideUpload,
+    LucideTrash2,
+    LucideEye,
+    PdfViewerModalComponent,
+  ],
   template: `
     <div>
       <div class="mb-4 flex gap-1 rounded-[12px] border border-mari-border bg-mari-bg-secondary p-1">
@@ -27,20 +44,50 @@ import { CourseFile, FileSort } from '../../core/models/mari.models';
           <div
             class="group flex items-center gap-3 rounded-[14px] border border-mari-border/80 bg-mari-bg px-4 py-3 shadow-sm transition-all hover:border-mari-primary-muted hover:shadow-md"
           >
-            <div class="flex size-10 items-center justify-center rounded-[12px] bg-mari-primary-light text-mari-primary-dark">
-              @if (file.type === 'PNG') {
-                <svg lucideImage [size]="18"></svg>
-              } @else {
-                <svg lucideFileText [size]="18"></svg>
-              }
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="truncate text-sm font-semibold text-mari-text">{{ file.name }}</div>
-              <div class="flex flex-wrap gap-2 text-xs text-mari-text-tertiary">
-                <span class="mari-chip bg-mari-bg-secondary py-0">{{ file.type }}</span>
-                <span>{{ file.date }}</span>
-                <span>{{ file.size }}</span>
+            <button
+              type="button"
+              (click)="openPreview(file)"
+              class="flex min-w-0 flex-1 items-center gap-3 text-left"
+              [class]="isPdf(file) ? 'cursor-pointer' : 'cursor-default'"
+            >
+              <div class="flex size-10 shrink-0 items-center justify-center rounded-[12px] bg-mari-primary-light text-mari-primary-dark">
+                @if (file.type === 'PNG' || file.type === 'JPG') {
+                  <svg lucideImage [size]="18"></svg>
+                } @else {
+                  <svg lucideFileText [size]="18"></svg>
+                }
               </div>
+              <div class="min-w-0 flex-1">
+                <div class="truncate text-sm font-semibold text-mari-text">{{ file.name }}</div>
+                <div class="flex flex-wrap gap-2 text-xs text-mari-text-tertiary">
+                  <span class="mari-chip bg-mari-bg-secondary py-0">{{ file.type }}</span>
+                  <span>{{ file.date }}</span>
+                  <span>{{ file.size }}</span>
+                </div>
+              </div>
+            </button>
+
+            <div class="flex shrink-0 items-center gap-1">
+              @if (isPdf(file)) {
+                <button
+                  type="button"
+                  (click)="openPreview(file)"
+                  class="rounded-[8px] p-2 text-mari-text-tertiary hover:bg-mari-primary-light hover:text-mari-primary-dark"
+                  aria-label="View PDF"
+                >
+                  <svg lucideEye [size]="16"></svg>
+                </button>
+              }
+              @if (editable()) {
+                <button
+                  type="button"
+                  (click)="deleteFile(file.id)"
+                  class="rounded-[8px] p-2 text-mari-text-tertiary opacity-0 transition-all hover:bg-accent-coral-bg hover:text-accent-coral-text group-hover:opacity-100"
+                  aria-label="Delete file"
+                >
+                  <svg lucideTrash2 [size]="16"></svg>
+                </button>
+              }
             </div>
           </div>
         } @empty {
@@ -50,20 +97,53 @@ import { CourseFile, FileSort } from '../../core/models/mari.models';
         }
       </div>
 
-      <button
-        type="button"
-        class="flex w-full items-center justify-center gap-2 rounded-[14px] border-2 border-dashed border-mari-primary/40 bg-mari-primary-light/50 py-4 text-sm font-semibold text-mari-primary-dark transition-all hover:border-mari-primary hover:bg-mari-primary-light"
-      >
-        <svg lucideUpload [size]="18"></svg>
-        Upload files
-      </button>
+      @if (editable()) {
+        <label
+          class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] border-2 border-dashed border-mari-primary/40 bg-mari-primary-light/50 py-4 text-sm font-semibold text-mari-primary-dark transition-all hover:border-mari-primary hover:bg-mari-primary-light"
+          [class.opacity-60]="uploading()"
+        >
+          <svg lucideUpload [size]="18"></svg>
+          {{ uploading() ? 'Uploading…' : 'Upload files' }}
+          <input
+            type="file"
+            class="sr-only"
+            accept=".pdf,application/pdf,image/png,image/jpeg,image/jpg"
+            multiple
+            [disabled]="uploading()"
+            (change)="onFilesSelected($event)"
+          />
+        </label>
+        @if (uploadError()) {
+          <p class="mt-2 text-xs text-accent-coral-text">{{ uploadError() }}</p>
+        }
+      }
+
+      <app-pdf-viewer-modal
+        [open]="viewerOpen()"
+        [title]="viewerTitle()"
+        [url]="viewerSafeUrl()"
+        (closed)="closePreview()"
+      />
     </div>
   `,
 })
 export class FileRepoComponent {
   readonly files = input.required<CourseFile[]>();
+  readonly courseId = input.required<string>();
+  readonly editable = input(true);
+
+  private readonly store = inject(MariStoreService);
+  private readonly fileStorage = inject(CourseFileStorageService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   protected readonly activeSort = signal<FileSort>('name');
+  protected readonly uploading = signal(false);
+  protected readonly uploadError = signal('');
+  protected readonly viewerOpen = signal(false);
+  protected readonly viewerTitle = signal('');
+  protected readonly viewerSafeUrl = signal<SafeResourceUrl | null>(null);
+  private previewObjectUrl: string | null = null;
+
   protected readonly sortOptions: { id: FileSort; label: string }[] = [
     { id: 'name', label: 'Name' },
     { id: 'date', label: 'Date' },
@@ -79,4 +159,112 @@ export class FileRepoComponent {
       return b.date.localeCompare(a.date);
     });
   });
+
+  isPdf(file: CourseFile): boolean {
+    return file.type === 'PDF' || file.mimeType === 'application/pdf';
+  }
+
+  async openPreview(file: CourseFile): Promise<void> {
+    if (!this.isPdf(file)) return;
+
+    this.closePreview();
+    this.viewerTitle.set(file.name);
+
+    if (!file.stored) {
+      this.viewerSafeUrl.set(null);
+      this.viewerOpen.set(true);
+      return;
+    }
+
+    try {
+      const blob = await this.fileStorage.getBlob(file.id);
+      if (!blob) {
+        this.viewerSafeUrl.set(null);
+        this.viewerOpen.set(true);
+        return;
+      }
+      this.previewObjectUrl = this.fileStorage.createObjectUrl(blob);
+      this.viewerSafeUrl.set(
+        this.sanitizer.bypassSecurityTrustResourceUrl(this.previewObjectUrl),
+      );
+      this.viewerOpen.set(true);
+    } catch {
+      this.uploadError.set('Could not open this PDF preview.');
+    }
+  }
+
+  closePreview(): void {
+    this.viewerOpen.set(false);
+    this.viewerTitle.set('');
+    this.viewerSafeUrl.set(null);
+    if (this.previewObjectUrl) {
+      this.fileStorage.revokeObjectUrl(this.previewObjectUrl);
+      this.previewObjectUrl = null;
+    }
+  }
+
+  deleteFile(fileId: string): void {
+    this.store.deleteCourseFile(this.courseId(), fileId);
+  }
+
+  async onFilesSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const selected = input.files;
+    if (!selected?.length) return;
+
+    this.uploading.set(true);
+    this.uploadError.set('');
+
+    try {
+      for (const file of Array.from(selected)) {
+        await this.uploadFile(file);
+      }
+    } catch {
+      this.uploadError.set('Upload failed. Try a smaller PDF (under 15 MB).');
+    } finally {
+      this.uploading.set(false);
+      input.value = '';
+    }
+  }
+
+  private async uploadFile(file: File): Promise<void> {
+    if (file.size > 15 * 1024 * 1024) {
+      throw new Error('File too large');
+    }
+
+    const id = `f-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    await this.fileStorage.saveBlob(id, file);
+
+    const courseFile: CourseFile = {
+      id,
+      name: file.name,
+      type: fileTypeLabel(file),
+      date: formatFileDate(new Date()),
+      size: formatFileSize(file.size),
+      mimeType: file.type,
+      stored: true,
+    };
+
+    this.store.addCourseFile(this.courseId(), courseFile);
+  }
+}
+
+function fileTypeLabel(file: File): string {
+  if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) return 'PDF';
+  if (file.type.startsWith('image/')) {
+    const ext = file.name.split('.').pop()?.toUpperCase();
+    return ext ?? 'IMG';
+  }
+  const ext = file.name.split('.').pop()?.toUpperCase();
+  return ext ?? 'FILE';
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatFileDate(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
 }

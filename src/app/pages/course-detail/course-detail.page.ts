@@ -37,7 +37,7 @@ import { FileRepoComponent } from '../../shared/file-repo/file-repo.component';
                 File repository
               </div>
             </div>
-            <app-file-repo [files]="files()" />
+            <app-file-repo [files]="files()" [courseId]="courseId()" />
           </section>
           <section class="mari-surface-elevated p-5">
             <div class="mari-section-head">
@@ -64,7 +64,7 @@ export class CourseDetailPage {
   private readonly route = inject(ActivatedRoute);
   protected readonly store = inject(MariStoreService);
 
-  private readonly courseId = computed(() => this.route.snapshot.paramMap.get('courseId') ?? '');
+  protected readonly courseId = computed(() => this.route.snapshot.paramMap.get('courseId') ?? '');
   protected readonly course = computed(() => this.store.getCourse(this.courseId()));
   protected readonly files = computed(() => this.store.getCourseFiles(this.courseId()));
   protected readonly bookmarks = computed(() => this.store.getBookmarksForCourse(this.courseId()));

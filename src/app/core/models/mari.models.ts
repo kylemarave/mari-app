@@ -81,6 +81,8 @@ export interface CourseFile {
   type: string;
   date: string;
   size: string;
+  mimeType?: string;
+  stored?: boolean;
 }
 
 export interface BookmarkLink {

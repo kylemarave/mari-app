@@ -1,4 +1,4 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, Injectable, inject, signal } from '@angular/core';
 import { createId, SEED_STATE } from '../data/seed-data';
 import {
   AppState,
@@ -12,13 +12,17 @@ import {
   ScheduleEntry,
   ScheduleBlock,
   CourseAccent,
+  CourseFile,
+  CourseFolder,
 } from '../models/mari.models';
+import { CourseFileStorageService } from './course-file-storage.service';
 
 const STORAGE_KEY = 'mari-app-state';
 
 @Injectable({ providedIn: 'root' })
 export class MariStoreService {
   private readonly state = signal<AppState>(this.loadState());
+  private readonly fileStorage = inject(CourseFileStorageService);
 
   readonly student = computed(() => this.state().student);
   readonly countdown = computed(() => this.state().countdown);
@@ -161,6 +165,52 @@ export class MariStoreService {
   addBookmark(link: Omit<BookmarkLink, 'id'>): void {
     this.patch({
       bookmarks: [...this.state().bookmarks, { ...link, id: createId('b') }],
+    });
+  }
+
+  addCourse(course: Omit<CourseFolder, 'id' | 'fileCount'>): CourseFolder {
+    const newCourse: CourseFolder = {
+      ...course,
+      id: createId('course'),
+      fileCount: 0,
+    };
+    this.patch({
+      courses: [...this.state().courses, newCourse],
+      courseFiles: { ...this.state().courseFiles, [newCourse.id]: [] },
+    });
+    return newCourse;
+  }
+
+  deleteCourse(courseId: string): void {
+    const fileIds = (this.state().courseFiles[courseId] ?? []).map((file) => file.id);
+    void this.fileStorage.deleteBlobs(fileIds);
+
+    const { [courseId]: _removed, ...remainingFiles } = this.state().courseFiles;
+    this.patch({
+      courses: this.state().courses.filter((course) => course.id !== courseId),
+      courseFiles: remainingFiles,
+      bookmarks: this.state().bookmarks.filter((bookmark) => bookmark.courseId !== courseId),
+    });
+  }
+
+  addCourseFile(courseId: string, file: CourseFile): void {
+    const existing = this.state().courseFiles[courseId] ?? [];
+    this.patch({
+      courseFiles: {
+        ...this.state().courseFiles,
+        [courseId]: [...existing, file],
+      },
+    });
+  }
+
+  deleteCourseFile(courseId: string, fileId: string): void {
+    void this.fileStorage.deleteBlob(fileId);
+    const existing = this.state().courseFiles[courseId] ?? [];
+    this.patch({
+      courseFiles: {
+        ...this.state().courseFiles,
+        [courseId]: existing.filter((file) => file.id !== fileId),
+      },
     });
   }
 
