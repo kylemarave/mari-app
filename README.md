@@ -50,4 +50,8 @@ $env:GEMINI_API_KEY="your_key"
 npm run serve:ssr:mari-app
 ```
 
-The Express server in `src/server.ts` exposes `POST /api/generate-study-set` when `GEMINI_API_KEY` is set.
+## Gemini API keys (AIzaSy and AQ.)
+
+The server uses **`@google/genai`** with a **REST fallback** so both legacy (`AIzaSy…`) and auth (`AQ.…`) keys from Google AI Studio work on Vercel.
+
+If generation fails with **500**, check the Network response body for the exact error message.

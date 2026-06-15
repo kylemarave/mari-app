@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import type { Express, Request, Response } from 'express';
 
 export interface GeminiStudySetResponse {
@@ -17,6 +17,27 @@ export interface GeminiStudySetResponse {
 }
 
 const CHUNK_SIZE = 10_000;
+const MODELS = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'] as const;
+
+const STUDY_PROMPT = (fileName: string, text: string) => `You are Mari, an AI study assistant similar to Gizmo AI. From the document below, create a formatted study reviewer AND flashcards.
+
+Rules:
+- Split content into 3–8 logical sections (chapters, topics, or themes)
+- Each section: heading, 2–4 sentence summary, 3–6 key point bullets
+- Each section: 3–6 flashcards with type one of: definition, concept, process, fact
+- Questions must test understanding; answers are 1–3 sentences
+- Avoid duplicate cards
+- Return valid JSON only with this shape:
+{
+  "title": string,
+  "overview": string,
+  "sections": [{ "heading": string, "summary": string, "keyPoints": string[], "cards": [{ "type": "definition"|"concept"|"process"|"fact", "question": string, "answer": string }] }]
+}
+
+Document file name: ${fileName}
+
+DOCUMENT:
+${text}`;
 
 function chunkText(text: string): string[] {
   if (text.length <= CHUNK_SIZE) return [text];
@@ -49,41 +70,119 @@ function dedupeSections(
   }));
 }
 
-async function generateFromChunk(
-  model: ReturnType<GoogleGenerativeAI['getGenerativeModel']>,
-  text: string,
-  fileName: string,
-): Promise<GeminiStudySetResponse> {
-  const prompt = `You are Mari, an AI study assistant similar to Gizmo AI. From the document below, create a formatted study reviewer AND flashcards.
+function parseStudyJson(raw: string): GeminiStudySetResponse {
+  const trimmed = raw.trim();
+  const jsonText = trimmed.startsWith('```')
+    ? trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+    : trimmed;
+  const parsed = JSON.parse(jsonText) as GeminiStudySetResponse;
+  if (!parsed.title || !parsed.overview || !Array.isArray(parsed.sections)) {
+    throw new Error('Invalid JSON shape from Gemini');
+  }
+  return parsed;
+}
 
-Rules:
-- Split content into 3–8 logical sections (chapters, topics, or themes)
-- Each section: heading, 2–4 sentence summary, 3–6 key point bullets
-- Each section: 3–6 flashcards with type one of: definition, concept, process, fact
-- Questions must test understanding; answers are 1–3 sentences
-- Avoid duplicate cards
-- Return valid JSON only
+function normalizeApiKey(raw: string | undefined): string {
+  const key = raw?.trim() ?? '';
+  if (!key) throw new Error('GEMINI_API_KEY is not configured on the server.');
+  return key;
+}
 
-Document file name: ${fileName}
+function isAuthKey(apiKey: string): boolean {
+  return apiKey.startsWith('AQ.');
+}
 
-DOCUMENT:
-${text}`;
+function geminiErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return 'Gemini generation failed.';
+}
 
-  const result = await model.generateContent({
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: {
+async function generateViaRest(
+  apiKey: string,
+  model: string,
+  prompt: string,
+): Promise<string> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
+    },
+    body: JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.4,
+      },
+    }),
+  });
+
+  const body = (await res.json().catch(() => ({}))) as {
+    error?: { message?: string };
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+
+  if (!res.ok) {
+    throw new Error(body.error?.message ?? `Gemini REST failed (${res.status})`);
+  }
+
+  const text = body.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Empty response from Gemini REST');
+  return text;
+}
+
+async function generateViaGenAiSdk(
+  apiKey: string,
+  model: string,
+  prompt: string,
+): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey });
+  const response = await ai.models.generateContent({
+    model,
+    contents: prompt,
+    config: {
       responseMimeType: 'application/json',
       temperature: 0.4,
     },
   });
 
-  const raw = result.response.text();
-  if (!raw) throw new Error('Empty response from Gemini');
-  const parsed = JSON.parse(raw) as GeminiStudySetResponse;
-  if (!parsed.title || !parsed.overview || !Array.isArray(parsed.sections)) {
-    throw new Error('Invalid JSON shape from Gemini');
+  const text = response.text?.trim();
+  if (!text) throw new Error('Empty response from Gemini SDK');
+  return text;
+}
+
+async function generateFromChunk(
+  apiKey: string,
+  text: string,
+  fileName: string,
+): Promise<GeminiStudySetResponse> {
+  const prompt = STUDY_PROMPT(fileName, text);
+  const errors: string[] = [];
+
+  for (const model of MODELS) {
+    if (isAuthKey(apiKey)) {
+      try {
+        const raw = await generateViaRest(apiKey, model, prompt);
+        return parseStudyJson(raw);
+      } catch (error) {
+        errors.push(`${model} (REST): ${geminiErrorMessage(error)}`);
+      }
+    }
+
+    try {
+      const raw = await generateViaGenAiSdk(apiKey, model, prompt);
+      return parseStudyJson(raw);
+    } catch (error) {
+      errors.push(`${model} (SDK): ${geminiErrorMessage(error)}`);
+    }
   }
-  return parsed;
+
+  throw new Error(
+    errors.length
+      ? `All Gemini models failed. ${errors.slice(0, 3).join(' | ')}`
+      : 'Gemini generation failed.',
+  );
 }
 
 function mergeStudySets(parts: GeminiStudySetResponse[]): GeminiStudySetResponse {
@@ -107,19 +206,13 @@ export async function generateStudySetWithGemini(
   fileName: string,
   pageCount: number,
 ): Promise<GeminiStudySetResponse & { fileName: string; pageCount: number }> {
-  const apiKey = process.env['GEMINI_API_KEY'];
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY is not configured on the server.');
-  }
-
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const apiKey = normalizeApiKey(process.env['GEMINI_API_KEY']);
 
   const chunks = chunkText(text);
   const partials: GeminiStudySetResponse[] = [];
 
   for (const chunk of chunks) {
-    partials.push(await generateFromChunk(model, chunk, fileName));
+    partials.push(await generateFromChunk(apiKey, chunk, fileName));
   }
 
   const merged = partials.length === 1 ? partials[0]! : mergeStudySets(partials);
@@ -147,7 +240,7 @@ export function registerGeminiStudyRoutes(app: Express): void {
       const result = await generateStudySetWithGemini(text, fileName, pageCount);
       res.json(result);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Gemini generation failed.';
+      const message = geminiErrorMessage(error);
       res.status(500).json({ error: message });
     }
   });
