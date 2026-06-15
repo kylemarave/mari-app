@@ -16,12 +16,54 @@ function scheduleDate(day: number): string {
 function buildSeedScheduleEntries(): ScheduleEntry[] {
   const today = new Date().getDate();
   return [
-    { id: 's1', date: scheduleDate(today), time: '9:00', title: 'MATH 101', location: 'G204', accent: 'violet' },
-    { id: 's2', date: scheduleDate(today), time: '11:00', title: 'CHEM 10', location: 'Lab', accent: 'teal' },
-    { id: 's3', date: scheduleDate(today), time: '14:00', title: 'ENG 201', location: 'R102', accent: 'coral' },
-    { id: 's4', date: scheduleDate(Math.max(1, today - 1)), time: '10:00', title: 'Office hours', location: 'Faculty hall', accent: 'amber' },
-    { id: 's5', date: scheduleDate(Math.min(28, today + 2)), time: '13:00', title: 'Group study', location: 'Library', accent: 'sage' },
-    { id: 's6', date: scheduleDate(Math.min(28, today + 5)), time: '15:30', title: 'CS Lab', location: 'B201', accent: 'violet' },
+    {
+      id: 's1',
+      date: scheduleDate(today),
+      time: '9:00',
+      title: 'MATH 101',
+      location: 'G204',
+      accent: 'violet',
+    },
+    {
+      id: 's2',
+      date: scheduleDate(today),
+      time: '11:00',
+      title: 'CHEM 10',
+      location: 'Lab',
+      accent: 'teal',
+    },
+    {
+      id: 's3',
+      date: scheduleDate(today),
+      time: '14:00',
+      title: 'ENG 201',
+      location: 'R102',
+      accent: 'coral',
+    },
+    {
+      id: 's4',
+      date: scheduleDate(Math.max(1, today - 1)),
+      time: '10:00',
+      title: 'Office hours',
+      location: 'Faculty hall',
+      accent: 'amber',
+    },
+    {
+      id: 's5',
+      date: scheduleDate(Math.min(28, today + 2)),
+      time: '13:00',
+      title: 'Group study',
+      location: 'Library',
+      accent: 'sage',
+    },
+    {
+      id: 's6',
+      date: scheduleDate(Math.min(28, today + 5)),
+      time: '15:30',
+      title: 'CS Lab',
+      location: 'B201',
+      accent: 'violet',
+    },
   ];
 }
 
@@ -30,7 +72,13 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/courses', label: 'Courses', mobileLabel: 'Courses', icon: 'courses' },
   { path: '/schedule', label: 'Schedule', mobileLabel: 'Schedule', icon: 'schedule' },
   { path: '/tasks', label: 'Tasks', mobileLabel: 'Tasks', icon: 'tasks', desktopOnly: true },
-  { path: '/pomodoro', label: 'Pomodoro', mobileLabel: 'Focus', icon: 'pomodoro', desktopOnly: true },
+  {
+    path: '/pomodoro',
+    label: 'Pomodoro',
+    mobileLabel: 'Focus',
+    icon: 'pomodoro',
+    desktopOnly: true,
+  },
   { path: '/study-sets', label: 'Study Sets', mobileLabel: 'Study', icon: 'study-sets' },
 ];
 
@@ -168,8 +216,7 @@ export const SEED_STATE: AppState = {
         {
           id: 'c1',
           question: 'What is Entropy?',
-          answer:
-            'Entropy is a measure of disorder or randomness in a thermodynamic system.',
+          answer: 'Entropy is a measure of disorder or randomness in a thermodynamic system.',
         },
         {
           id: 'c2',
