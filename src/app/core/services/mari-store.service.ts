@@ -79,7 +79,6 @@ export class MariStoreService {
     return {
       tasksDue: active.length,
       urgent: this.highPriorityTasks().length,
-      gpa: this.student().gpa,
       studyProgress: totalCards ? Math.round((learnedCards / totalCards) * 100) : 0,
       nextClass: nextClass ? `${nextClass.title} · ${nextClass.time}` : 'No class today',
       coursesCount: this.courses().length,

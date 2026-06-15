@@ -22,9 +22,10 @@ const MODELS = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'] as c
 const STUDY_PROMPT = (fileName: string, text: string) => `You are Mari, an AI study assistant similar to Gizmo AI. From the document below, create a formatted study reviewer AND flashcards.
 
 Rules:
-- Split content into 3–8 logical sections (chapters, topics, or themes)
-- Each section: heading, 2–4 sentence summary, 3–6 key point bullets
-- Each section: 3–6 flashcards with type one of: definition, concept, process, fact
+- Split content into logical sections (chapters, topics, or themes) covering all major material
+- Each section: heading, 2–4 sentence summary, key point bullets for the important ideas
+- Each section: create flashcards for every important concept, term, definition, and process — cover the full material, not a fixed count
+- Flashcard type one of: definition, concept, process, fact
 - Questions must test understanding; answers are 1–3 sentences
 - Avoid duplicate cards
 - Return valid JSON only with this shape:

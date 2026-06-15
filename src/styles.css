@@ -28,13 +28,13 @@
   --color-accent-blue-text: #0c447c;
 
   --color-mari-bg: #ffffff;
-  --color-mari-bg-secondary: #f5f5f7;
-  --color-mari-bg-tertiary: #ebebef;
+  --color-mari-bg-secondary: #fafafa;
+  --color-mari-bg-tertiary: #f5f5f7;
   --color-mari-text: #1a1b1e;
   --color-mari-text-secondary: #5c5f66;
   --color-mari-text-tertiary: #8b8f97;
-  --color-mari-border: #e4e5e8;
-  --color-mari-border-secondary: #d1d3d8;
+  --color-mari-border: #ececef;
+  --color-mari-border-secondary: #e0e0e4;
 
   --radius-mari-sm: 8px;
   --radius-mari-md: 12px;
@@ -43,45 +43,6 @@
   --shadow-mari-sm: 0 1px 2px rgb(26 27 30 / 0.04), 0 1px 3px rgb(83 74 183 / 0.06);
   --shadow-mari-md: 0 4px 12px rgb(26 27 30 / 0.06), 0 2px 4px rgb(83 74 183 / 0.04);
   --shadow-mari-lg: 0 8px 24px rgb(26 27 30 / 0.08), 0 4px 8px rgb(83 74 183 / 0.06);
-}
-
-html.dark {
-  --color-mari-primary: #7b72e8;
-  --color-mari-primary-dark: #9d96f0;
-  --color-mari-primary-light: #2a2840;
-  --color-mari-primary-muted: #4a4570;
-
-  --color-accent-teal: #34c759;
-  --color-accent-teal-bg: #1a3328;
-  --color-accent-teal-text: #a8e6cf;
-
-  --color-accent-coral: #ff7a59;
-  --color-accent-coral-bg: #3d2a24;
-  --color-accent-coral-text: #ffc9b8;
-
-  --color-accent-amber: #ffb340;
-  --color-accent-amber-bg: #3d3420;
-  --color-accent-amber-text: #ffe4a8;
-
-  --color-accent-sage: #8bc34a;
-  --color-accent-sage-bg: #2a3318;
-  --color-accent-sage-text: #dcedc8;
-
-  --color-accent-blue-bg: #1e2a38;
-  --color-accent-blue-text: #90caf9;
-
-  --color-mari-bg: #1a1b1e;
-  --color-mari-bg-secondary: #25262b;
-  --color-mari-bg-tertiary: #2f3036;
-  --color-mari-text: #f0f0f2;
-  --color-mari-text-secondary: #b4b6bc;
-  --color-mari-text-tertiary: #8b8f97;
-  --color-mari-border: #3a3b40;
-  --color-mari-border-secondary: #4a4b52;
-
-  --shadow-mari-sm: 0 1px 2px rgb(0 0 0 / 0.2), 0 1px 3px rgb(0 0 0 / 0.15);
-  --shadow-mari-md: 0 4px 12px rgb(0 0 0 / 0.25), 0 2px 4px rgb(0 0 0 / 0.15);
-  --shadow-mari-lg: 0 8px 24px rgb(0 0 0 / 0.3), 0 4px 8px rgb(0 0 0 / 0.2);
 }
 
 @layer base {
@@ -93,7 +54,7 @@ html.dark {
 
   html,
   body {
-    @apply h-dvh m-0;
+    @apply h-dvh m-0 overflow-x-hidden;
   }
 
   body {
@@ -113,87 +74,102 @@ html.dark {
   }
 
   .mari-surface {
-    @apply rounded-[16px] border border-mari-border bg-mari-bg;
+    @apply rounded-[12px] border border-mari-border bg-mari-bg;
     box-shadow: var(--shadow-mari-sm);
   }
 
   .mari-surface-elevated {
-    @apply rounded-[16px] border border-mari-border bg-mari-bg;
+    @apply rounded-[12px] border border-mari-border bg-mari-bg;
     box-shadow: var(--shadow-mari-md);
   }
 
+  .mari-card-padding {
+    @apply p-3.5;
+  }
+
+  .mari-dashboard-section {
+    @apply flex h-full min-h-0 flex-col;
+  }
+
+  .mari-card-padding-sm {
+    @apply p-2.5;
+  }
+
   .mari-section-head {
-    @apply mb-4 flex items-center justify-between gap-3;
+    @apply mb-2.5 flex items-center justify-between gap-2;
+  }
+
+  .mari-section-head-sm {
+    @apply mb-1.5 flex items-center justify-between gap-2;
   }
 
   .mari-section-title {
-    @apply flex items-center gap-2 text-sm font-semibold text-mari-text;
+    @apply flex items-center gap-1.5 text-xs font-semibold text-mari-text;
   }
 
   .mari-section-icon {
-    @apply flex size-8 shrink-0 items-center justify-center rounded-[10px];
+    @apply flex size-7 shrink-0 items-center justify-center rounded-[8px];
+  }
+
+  .mari-section-icon-sm {
+    @apply flex size-6 shrink-0 items-center justify-center rounded-[6px];
   }
 
   .mari-link-action {
-    @apply text-xs font-medium text-mari-primary transition-colors hover:text-mari-primary-dark hover:underline;
+    @apply text-[11px] font-medium text-mari-primary transition-colors hover:text-mari-primary-dark hover:underline;
   }
 
   .mari-stat {
-    @apply relative overflow-hidden rounded-[16px] border border-mari-border bg-mari-bg p-4;
+    @apply relative overflow-hidden rounded-[12px] border border-mari-border bg-mari-bg p-3;
     box-shadow: var(--shadow-mari-sm);
   }
 
   .mari-stat-value {
-    @apply text-2xl font-semibold tracking-tight text-mari-text;
+    @apply text-xl font-semibold tracking-tight text-mari-text;
   }
 
   .mari-stat-label {
-    @apply text-[11px] font-semibold uppercase tracking-wider text-mari-text-tertiary;
+    @apply text-[10px] font-semibold uppercase tracking-wider text-mari-text-tertiary;
   }
 
   .mari-hero {
-    @apply relative overflow-hidden rounded-[20px] border border-mari-primary-muted/40 p-5 sm:p-6;
+    @apply relative overflow-hidden rounded-[14px] border border-mari-primary-muted/40 p-4 sm:p-5;
     background: linear-gradient(135deg, #eeedfe 0%, #ffffff 45%, #e6f1fb 100%);
     box-shadow: var(--shadow-mari-md);
   }
 
-  html.dark .mari-hero {
-    background: linear-gradient(135deg, #2a2840 0%, var(--color-mari-bg) 45%, #1e2a38 100%);
+  .mari-gradient-card {
+    @apply rounded-[12px] border border-mari-primary-muted/50 shadow-sm transition-shadow hover:shadow-md;
+    background: linear-gradient(
+      to right,
+      #eeedfe,
+      #ffffff,
+      rgb(238 237 254 / 0.6)
+    );
   }
 
   .mari-chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold;
   }
 
   .mari-input {
-    @apply w-full rounded-[12px] border border-mari-border bg-mari-bg px-3.5 py-2.5 text-sm text-mari-text outline-none transition-shadow placeholder:text-mari-text-tertiary focus:border-mari-primary focus:ring-2 focus:ring-mari-primary/20;
+    @apply w-full rounded-[10px] border border-mari-border bg-mari-bg px-3 py-2 text-xs text-mari-text outline-none transition-shadow placeholder:text-mari-text-tertiary focus:border-mari-primary focus:ring-2 focus:ring-mari-primary/20;
   }
 
   .mari-btn-primary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-[12px] bg-mari-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-mari-primary-dark hover:shadow-md active:scale-[0.98] disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1 rounded-[10px] bg-mari-primary px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-mari-primary-dark hover:shadow-md active:scale-[0.98] disabled:opacity-50;
   }
 
   .mari-btn-secondary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-[12px] border border-mari-border bg-mari-bg px-4 py-2.5 text-sm font-semibold text-mari-text-secondary transition-all hover:bg-mari-bg-secondary hover:text-mari-text active:scale-[0.98] disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1 rounded-[10px] border border-mari-border bg-mari-bg px-3.5 py-2 text-xs font-semibold text-mari-text-secondary transition-all hover:bg-mari-bg-secondary hover:text-mari-text active:scale-[0.98] disabled:opacity-50;
   }
 
   .mari-bg-mesh {
-    background-color: var(--color-mari-bg-secondary);
+    background-color: #fcfcfd;
     background-image:
-      radial-gradient(at 0% 0%, rgb(83 74 183 / 0.12) 0, transparent 50%),
-      radial-gradient(at 100% 0%, rgb(29 158 117 / 0.08) 0, transparent 45%),
-      radial-gradient(at 50% 100%, rgb(83 74 183 / 0.06) 0, transparent 50%);
-  }
-
-  html.dark .mari-bg-mesh {
-    background-color: var(--color-mari-bg-secondary);
-    background-image:
-      radial-gradient(at 0% 0%, rgb(83 74 183 / 0.15) 0, transparent 50%),
-      radial-gradient(at 100% 0%, rgb(29 158 117 / 0.08) 0, transparent 45%);
-  }
-
-  html.dark .mari-hero {
-    background: linear-gradient(135deg, #2a2840 0%, var(--color-mari-bg) 45%, #1e2a38 100%);
+      radial-gradient(at 0% 0%, rgb(238 237 254 / 0.45) 0, transparent 55%),
+      radial-gradient(at 100% 0%, rgb(230 241 251 / 0.35) 0, transparent 50%),
+      radial-gradient(at 50% 100%, rgb(225 245 238 / 0.25) 0, transparent 55%);
   }
 
   .mari-scroll-area {
@@ -204,6 +180,30 @@ html.dark {
     scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: var(--color-mari-border-secondary) transparent;
+  }
+
+  .mari-sidebar-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-mari-border-secondary) transparent;
+  }
+
+  .mari-sidebar-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .mari-sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .mari-sidebar-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--color-mari-border-secondary);
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-clip: content-box;
   }
 
   .mari-scroll-area::-webkit-scrollbar {

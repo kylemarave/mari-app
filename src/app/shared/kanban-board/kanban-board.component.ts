@@ -5,29 +5,31 @@ import { MariStoreService } from '../../core/services/mari-store.service';
 @Component({
   selector: 'app-kanban-board',
   template: `
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-stretch sm:gap-4">
       @for (col of columns(); track col.id) {
-        <div class="flex min-h-[180px] flex-col rounded-[14px] border border-mari-border/80 bg-mari-bg-secondary/80 p-3">
+        <div
+          class="flex h-full flex-col rounded-[10px] border border-mari-border/60 bg-mari-bg-secondary/40 p-2.5"
+        >
           <div
-            class="mb-3 flex items-center justify-between rounded-[10px] px-3 py-2 text-xs font-bold uppercase tracking-wide"
+            class="mb-2 flex items-center justify-between rounded-[8px] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide"
             [class]="columnHeaderClass(col)"
           >
             <span>{{ col.title }}</span>
-            <span class="rounded-full bg-white/60 px-2 py-0.5 text-[10px]">{{ col.tasks.length }}</span>
+            <span class="rounded-full bg-mari-bg/60 px-1.5 py-0.5 text-[9px]">{{ col.tasks.length }}</span>
           </div>
-          <div class="flex flex-1 flex-col gap-2">
+          <div class="flex flex-col gap-1.5">
             @for (task of col.tasks; track task.id) {
               <button
                 type="button"
                 (click)="onTaskClick(task.id)"
-                class="rounded-[12px] border border-mari-border bg-mari-bg px-3 py-2.5 text-left text-sm font-medium text-mari-text shadow-sm transition-transform hover:-translate-y-0.5 hover:border-mari-primary-muted hover:shadow-md"
+                class="rounded-[8px] border border-mari-border bg-mari-bg px-2.5 py-2 text-left text-xs font-medium text-mari-text shadow-sm transition-transform hover:-translate-y-0.5 hover:border-mari-primary-muted hover:shadow-md"
                 [title]="editable() ? 'Click to move to next column' : ''"
               >
                 {{ task.title }}
               </button>
             } @empty {
               <div
-                class="flex flex-1 items-center justify-center rounded-[12px] border border-dashed border-mari-border py-6 text-center text-xs text-mari-text-tertiary"
+                class="rounded-[8px] border border-dashed border-mari-border py-3 text-center text-[10px] text-mari-text-tertiary"
               >
                 No tasks here
               </div>
@@ -37,7 +39,7 @@ import { MariStoreService } from '../../core/services/mari-store.service';
       }
     </div>
     @if (editable()) {
-      <p class="mt-3 text-center text-xs text-mari-text-tertiary">
+      <p class="mt-2.5 text-center text-[10px] text-mari-text-tertiary">
         Click a task to move it: To-do → In progress → Done
       </p>
     }

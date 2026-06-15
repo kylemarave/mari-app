@@ -5,13 +5,11 @@ import { LucideCalendarDays, LucideListTodo, LucidePlus } from '@lucide/angular'
 import { CourseAccent } from '../../core/models/mari.models';
 import { MariStoreService } from '../../core/services/mari-store.service';
 import { ScheduleTimelineComponent } from '../../shared/schedule-timeline/schedule-timeline.component';
-import { TaskListComponent } from '../../shared/task-list/task-list.component';
 
 @Component({
   selector: 'app-schedule-page',
   imports: [
     ScheduleTimelineComponent,
-    TaskListComponent,
     RouterLink,
     FormsModule,
     LucideCalendarDays,
@@ -33,8 +31,8 @@ import { TaskListComponent } from '../../shared/task-list/task-list.component';
         </a>
       </div>
 
-      <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
-        <section class="mari-surface-elevated p-5 lg:col-span-8">
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:items-start">
+        <section class="mari-surface-elevated self-start p-5 lg:col-span-8">
           <div class="mari-section-head">
             <div class="mari-section-title">
               <span class="mari-section-icon bg-mari-primary-light text-mari-primary-dark">
@@ -114,18 +112,6 @@ import { TaskListComponent } from '../../shared/task-list/task-list.component';
                 Add to schedule
               </button>
             </form>
-          </section>
-
-          <section class="mari-surface p-5">
-            <div class="mari-section-head">
-              <div class="mari-section-title">
-                <span class="mari-section-icon bg-accent-coral-bg text-accent-coral-text">
-                  <svg lucideListTodo [size]="16"></svg>
-                </span>
-                Due soon
-              </div>
-            </div>
-            <app-task-list [tasks]="store.activeTasks()" [editable]="false" />
           </section>
         </div>
       </div>

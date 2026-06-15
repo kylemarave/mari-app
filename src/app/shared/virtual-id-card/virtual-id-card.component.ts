@@ -1,4 +1,5 @@
 import { Component, inject, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { StudentProfile } from '../../core/models/mari.models';
 import { MariStoreService } from '../../core/services/mari-store.service';
 
@@ -6,48 +7,78 @@ const LOGO_PRESETS = ['🎓', '📚', '✨', '🌸', '🔬', '📝'];
 
 @Component({
   selector: 'app-virtual-id-card',
+  imports: [RouterLink],
   template: `
-    @if (variant() === 'widget') {
-      <div class="relative overflow-hidden rounded-[16px] bg-gradient-to-br from-accent-blue-bg/80 via-white to-mari-primary-light/50 p-5 ring-1 ring-mari-border/60">
-        <div class="absolute -right-6 -top-6 size-24 rounded-full bg-mari-primary/10"></div>
-        <div class="relative flex items-start gap-4">
+    @if (variant() === 'widget' && compact()) {
+      <div
+        class="relative overflow-hidden rounded-[10px] bg-gradient-to-br from-accent-blue-bg/70 via-mari-bg to-mari-primary-light/40 p-3 ring-1 ring-mari-border/60"
+      >
+        <div class="flex items-center gap-2.5">
           @if (profile().logoUrl) {
             <img
               [src]="profile().logoUrl"
               alt="Profile logo"
-              class="size-12 shrink-0 rounded-2xl object-cover shadow-md ring-2 ring-white"
+              class="size-9 shrink-0 rounded-lg object-cover shadow-sm ring-2 ring-mari-bg"
             />
           } @else {
             <div
-              class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-blue-text to-mari-primary-dark text-base font-bold text-white shadow-md"
+              class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent-blue-text to-mari-primary-dark text-xs font-bold text-white shadow-sm"
             >
               {{ profile().initials }}
             </div>
           }
           <div class="min-w-0 flex-1">
-            <div class="text-lg font-bold text-mari-text">{{ profile().name }}</div>
-            <div class="text-sm text-mari-text-secondary">
+            <div class="truncate text-sm font-bold text-mari-text">{{ profile().name }}</div>
+            <div class="truncate text-[11px] text-mari-text-secondary">
               {{ profile().university }} · {{ profile().program }}
             </div>
-            <div class="mt-2 inline-flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-0.5 text-xs font-semibold text-mari-primary-dark ring-1 ring-mari-primary-muted/30">
+          </div>
+        </div>
+        <a routerLink="/settings" class="mt-2 inline-block text-[10px] font-semibold text-mari-primary hover:underline">
+          Manage profile →
+        </a>
+      </div>
+    } @else if (variant() === 'widget') {
+      <div class="relative flex h-full flex-col overflow-hidden rounded-[12px] bg-gradient-to-br from-accent-blue-bg/80 via-mari-bg to-mari-primary-light/50 p-4 ring-1 ring-mari-border/60">
+        <div class="absolute -right-4 -top-4 size-16 rounded-full bg-mari-primary/10"></div>
+        <div class="relative flex items-start gap-3">
+          @if (profile().logoUrl) {
+            <img
+              [src]="profile().logoUrl"
+              alt="Profile logo"
+              class="size-10 shrink-0 rounded-xl object-cover shadow-sm ring-2 ring-mari-bg"
+            />
+          } @else {
+            <div
+              class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-accent-blue-text to-mari-primary-dark text-sm font-bold text-white shadow-sm"
+            >
+              {{ profile().initials }}
+            </div>
+          }
+          <div class="min-w-0 flex-1">
+            <div class="text-base font-bold text-mari-text">{{ profile().name }}</div>
+            <div class="text-xs text-mari-text-secondary">
+              {{ profile().university }} · {{ profile().program }}
+            </div>
+            <div class="mt-1.5 inline-flex items-center gap-1 rounded-full bg-mari-bg/80 px-2 py-0.5 text-[10px] font-semibold text-mari-primary-dark ring-1 ring-mari-primary-muted/30">
               Virtual ID · Active
             </div>
           </div>
         </div>
 
         <label
-          class="relative mt-4 flex h-10 cursor-pointer items-center justify-center rounded-[12px] border-2 border-dashed border-mari-primary-muted/50 bg-white/60 text-xs font-medium text-mari-text-tertiary transition-colors hover:border-mari-primary hover:text-mari-primary"
+          class="relative mt-3 flex h-9 cursor-pointer items-center justify-center rounded-[10px] border-2 border-dashed border-mari-primary-muted/50 bg-mari-bg/60 text-[11px] font-medium text-mari-text-tertiary transition-colors hover:border-mari-primary hover:text-mari-primary"
         >
           + Upload logo or choose preset
           <input type="file" accept="image/*" class="sr-only" (change)="onLogoUpload($event)" />
         </label>
 
-        <div class="mt-2 flex flex-wrap justify-center gap-1.5">
+        <div class="mt-2 flex flex-wrap justify-center gap-1">
           @for (preset of logoPresets; track preset) {
             <button
               type="button"
               (click)="setPresetLogo(preset)"
-              class="flex size-8 items-center justify-center rounded-lg border border-mari-border bg-white text-base transition-colors hover:border-mari-primary hover:bg-mari-primary-light"
+              class="flex size-7 items-center justify-center rounded-md border border-mari-border bg-mari-bg text-sm transition-colors hover:border-mari-primary hover:bg-mari-primary-light"
             >
               {{ preset }}
             </button>
@@ -98,6 +129,7 @@ const LOGO_PRESETS = ['🎓', '📚', '✨', '🌸', '🔬', '📝'];
 export class VirtualIdCardComponent {
   readonly profile = input.required<StudentProfile>();
   readonly variant = input<'widget' | 'mobile-header' | 'sidebar'>('widget');
+  readonly compact = input(false);
 
   private readonly store = inject(MariStoreService);
   protected readonly logoPresets = LOGO_PRESETS;
@@ -123,7 +155,7 @@ export class VirtualIdCardComponent {
     canvas.height = 96;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    ctx.fillStyle = '#eeedfe';
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-mari-primary-light').trim() || '#eeedfe';
     ctx.fillRect(0, 0, 96, 96);
     ctx.font = '48px serif';
     ctx.textAlign = 'center';

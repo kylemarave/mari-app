@@ -16,7 +16,6 @@ export interface StudentProfile {
   shortName: string;
   university: string;
   program: string;
-  gpa: number;
   logoUrl?: string;
 }
 

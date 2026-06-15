@@ -9,7 +9,7 @@ import { CountdownEvent } from '../../core/models/mari.models';
   template: `
     <a
       routerLink="/settings"
-      class="flex flex-wrap items-center gap-3 rounded-[14px] border border-mari-primary-muted/50 bg-gradient-to-r from-mari-primary-light via-white to-mari-primary-light/60 px-4 py-3 shadow-sm transition-shadow hover:shadow-md"
+      class="mari-gradient-card flex flex-wrap items-center gap-3 rounded-[14px] px-4 py-3"
     >
       <div
         class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-mari-primary text-white shadow-sm"

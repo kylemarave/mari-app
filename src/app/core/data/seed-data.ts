@@ -89,7 +89,6 @@ export const SEED_STATE: AppState = {
     shortName: 'Maria .',
     university: 'PUP',
     program: 'BSFT-1A',
-    gpa: 3.72,
   },
   countdown: {
     label: 'Calculus Exam — 3 days left',

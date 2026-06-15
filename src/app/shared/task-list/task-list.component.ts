@@ -23,12 +23,12 @@ import { PRIORITY_STYLES, TaskItem } from '../../core/models/mari.models';
     LucideTrash2,
   ],
   template: `
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col" [class]="compact() ? 'gap-1.5' : 'gap-2'">
       @for (task of tasks(); track task.id) {
         <div>
           <div
-            class="group flex items-center gap-3 rounded-[14px] border border-mari-border/80 bg-mari-bg px-3 py-3 shadow-sm transition-all hover:border-mari-primary-muted/60 hover:shadow-md"
-            [class]="compact() ? 'py-2.5' : 'py-3'"
+            class="group flex items-center gap-2 rounded-[8px] border border-mari-border/80 bg-mari-bg px-2 shadow-sm transition-all hover:border-mari-primary-muted/60 hover:shadow-md"
+            [class]="compact() ? 'py-1.5' : 'py-2.5'"
           >
             <button
               type="button"
@@ -52,9 +52,9 @@ import { PRIORITY_STYLES, TaskItem } from '../../core/models/mari.models';
                 aria-label="Toggle subtasks"
               >
                 @if (isExpanded(task.id)) {
-                  <svg lucideChevronDown [size]="16"></svg>
+                  <svg lucideChevronDown [size]="14"></svg>
                 } @else {
-                  <svg lucideChevronRight [size]="16"></svg>
+                  <svg lucideChevronRight [size]="14"></svg>
                 }
               </button>
             }
@@ -62,8 +62,10 @@ import { PRIORITY_STYLES, TaskItem } from '../../core/models/mari.models';
             <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-2">
                 <span
-                  class="text-sm font-semibold"
-                  [class]="task.done ? 'text-mari-text-tertiary line-through' : 'text-mari-text'"
+                  class="font-semibold"
+                  [class]="compact()
+                    ? (task.done ? 'text-xs text-mari-text-tertiary line-through' : 'text-xs text-mari-text')
+                    : (task.done ? 'text-sm text-mari-text-tertiary line-through' : 'text-sm text-mari-text')"
                 >
                   {{ task.title }}
                 </span>
@@ -74,8 +76,8 @@ import { PRIORITY_STYLES, TaskItem } from '../../core/models/mari.models';
                 }
               </div>
               @if (task.deadline) {
-                <div class="mt-0.5 flex items-center gap-1 text-xs text-mari-text-tertiary">
-                  <svg lucideClock [size]="12"></svg>
+                <div class="mt-0.5 flex items-center gap-1 text-[11px] text-mari-text-tertiary">
+                  <svg lucideClock [size]="10"></svg>
                   {{ task.deadline }}
                 </div>
               }
@@ -87,7 +89,7 @@ import { PRIORITY_STYLES, TaskItem } from '../../core/models/mari.models';
             </div>
 
             <span
-              class="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide"
+              class="shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide"
               [class]="priorityStyle(task).bg + ' ' + priorityStyle(task).text"
             >
               {{ priorityStyle(task).label }}
@@ -115,11 +117,12 @@ import { PRIORITY_STYLES, TaskItem } from '../../core/models/mari.models';
 
           @if (canExpand(task) && isExpanded(task.id)) {
             <div
-              class="ml-5 mt-2 flex flex-col gap-1.5 border-l-2 border-mari-primary/20 pl-4"
+              class="ml-4 mt-1.5 flex flex-col gap-1 border-l-2 border-mari-primary/20 pl-3"
+              [class]="compact() ? 'ml-3 pl-2.5' : ''"
             >
               @for (sub of task.subtasks ?? []; track sub.id) {
                 <div
-                  class="flex items-center gap-2.5 rounded-[12px] bg-mari-bg-secondary/80 px-3 py-2"
+                  class="flex items-center gap-2 rounded-[8px] bg-mari-bg-secondary/60 px-2 py-1"
                 >
                   <button
                     type="button"
@@ -134,7 +137,7 @@ import { PRIORITY_STYLES, TaskItem } from '../../core/models/mari.models';
                     }
                   </button>
                   <span
-                    class="text-sm"
+                    class="text-xs"
                     [class]="sub.done
                       ? 'text-mari-text-tertiary line-through'
                       : 'text-mari-text-secondary'"
@@ -144,7 +147,7 @@ import { PRIORITY_STYLES, TaskItem } from '../../core/models/mari.models';
                 </div>
               }
 
-              @if (editable()) {
+              @if (editable() && !compact()) {
                 <form
                   (ngSubmit)="addSubtask(task.id)"
                   class="flex items-center gap-2 rounded-[12px] border border-dashed border-mari-border bg-mari-bg px-2 py-1.5"
@@ -186,7 +189,7 @@ export class TaskListComponent {
   readonly editable = input(true);
 
   protected readonly store = inject(MariStoreService);
-  private readonly expanded = signal<Set<string>>(new Set(['t2']));
+  private readonly expanded = signal<Set<string>>(new Set());
   private readonly subtaskDrafts = signal<Record<string, string>>({});
 
   draftFor(taskId: string): string {

@@ -20,11 +20,11 @@ interface CalendarCell {
   imports: [LucideChevronLeft, LucideChevronRight, LucideTrash2],
   template: `
     <div>
-      <div class="mb-4 flex rounded-[12px] border border-mari-border bg-mari-bg-secondary p-1">
+      <div class="mb-2 flex rounded-[8px] border border-mari-border bg-mari-bg-secondary/80 p-0.5">
         <button
           type="button"
           (click)="view.set('schedule')"
-          class="flex-1 rounded-[10px] py-2 text-sm font-semibold transition-all"
+          class="flex-1 rounded-[6px] py-1 text-[11px] font-semibold transition-all"
           [class]="view() === 'schedule'
             ? 'bg-mari-bg text-mari-text shadow-sm'
             : 'text-mari-text-secondary hover:text-mari-text'"
@@ -34,7 +34,7 @@ interface CalendarCell {
         <button
           type="button"
           (click)="view.set('calendar')"
-          class="flex-1 rounded-[10px] py-2 text-sm font-semibold transition-all"
+          class="flex-1 rounded-[6px] py-1 text-[11px] font-semibold transition-all"
           [class]="view() === 'calendar'
             ? 'bg-mari-bg text-mari-text shadow-sm'
             : 'text-mari-text-secondary hover:text-mari-text'"
@@ -44,48 +44,48 @@ interface CalendarCell {
       </div>
 
       @if (view() === 'schedule') {
-        <div class="mb-4 flex items-center justify-between gap-3 rounded-[12px] border border-mari-border bg-mari-bg-secondary/70 px-3 py-2">
-          <button type="button" (click)="shiftSelectedDay(-1)" class="rounded-[8px] p-1.5 hover:bg-mari-bg">
-            <svg lucideChevronLeft [size]="18"></svg>
+        <div class="mb-2 flex items-center justify-between gap-1.5 rounded-[8px] border border-mari-border bg-mari-bg-secondary/50 px-2 py-1">
+          <button type="button" (click)="shiftSelectedDay(-1)" class="rounded-[4px] p-0.5 hover:bg-mari-bg">
+            <svg lucideChevronLeft [size]="14"></svg>
           </button>
           <div class="text-center">
-            <div class="text-sm font-bold text-mari-text">{{ selectedDateLabel() }}</div>
+            <div class="text-[11px] font-bold text-mari-text">{{ selectedDateLabel() }}</div>
             @if (selectedDate() !== todayIso()) {
-              <button type="button" (click)="selectedDate.set(todayIso())" class="text-xs font-medium text-mari-primary hover:underline">
+              <button type="button" (click)="selectedDate.set(todayIso())" class="text-[10px] font-medium text-mari-primary hover:underline">
                 Back to today
               </button>
             }
           </div>
-          <button type="button" (click)="shiftSelectedDay(1)" class="rounded-[8px] p-1.5 hover:bg-mari-bg">
-            <svg lucideChevronRight [size]="18"></svg>
+          <button type="button" (click)="shiftSelectedDay(1)" class="rounded-[4px] p-0.5 hover:bg-mari-bg">
+            <svg lucideChevronRight [size]="14"></svg>
           </button>
         </div>
 
         <div class="relative flex flex-col gap-0">
           @if (dayEntries().length) {
-            <div class="absolute bottom-2 left-[19px] top-2 w-0.5 bg-mari-border"></div>
+            <div class="absolute bottom-1 left-[13px] top-1 w-px bg-mari-border"></div>
           }
           @for (entry of dayEntries(); track entry.id; let last = $last) {
-            <div class="relative flex gap-4" [class]="last ? 'pb-0' : 'pb-4'">
+            <div class="relative flex gap-2" [class]="last ? 'pb-0' : 'pb-2'">
               <div
-                class="relative z-10 flex size-10 shrink-0 flex-col items-center justify-center rounded-xl bg-mari-bg text-[10px] font-bold text-mari-text-secondary ring-2 ring-mari-border"
+                class="relative z-10 flex size-7 shrink-0 items-center justify-center rounded-md bg-mari-bg text-[8px] font-bold leading-none text-mari-text-secondary ring-1 ring-mari-border"
               >
-                {{ formatTime(entry.time) }}
+                {{ compact() ? formatTimeShort(entry.time) : formatTime(entry.time) }}
               </div>
               <div
-                class="group min-w-0 flex-1 rounded-[14px] border border-transparent px-4 py-3 shadow-sm transition-transform hover:-translate-y-0.5"
+                class="group min-w-0 flex-1 rounded-[8px] border border-transparent px-2 py-1.5 shadow-sm transition-transform hover:-translate-y-0.5"
                 [class]="accentBlock(entry.accent)"
               >
-                <div class="flex items-start justify-between gap-2">
+                <div class="flex items-start justify-between gap-1.5">
                   <div class="min-w-0">
-                    <div class="font-semibold">{{ entry.title }}</div>
-                    <div class="mt-0.5 text-xs opacity-80">{{ entry.location || 'No location' }}</div>
+                    <div class="text-xs font-semibold leading-snug">{{ entry.title }}</div>
+                    <div class="mt-0.5 text-[10px] leading-snug opacity-80">{{ entry.location || 'No location' }}</div>
                   </div>
                   @if (editable()) {
                     <button
                       type="button"
                       (click)="store.deleteScheduleEntry(entry.id)"
-                      class="shrink-0 rounded-[8px] p-1.5 opacity-0 transition-all hover:bg-white/60 group-hover:opacity-100"
+                      class="shrink-0 rounded-[8px] p-1.5 opacity-0 transition-all hover:bg-mari-bg/60 group-hover:opacity-100"
                       aria-label="Delete schedule entry"
                     >
                       <svg lucideTrash2 [size]="14"></svg>
@@ -226,6 +226,14 @@ export class ScheduleTimelineComponent {
     const suffix = hour >= 12 ? 'PM' : 'AM';
     const normalized = hour % 12 || 12;
     return minute === '00' ? `${normalized}${suffix}` : `${normalized}:${minute}${suffix}`;
+  }
+
+  formatTimeShort(time: string): string {
+    const match = time.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return time;
+    const hour = Number(match[1]);
+    const suffix = hour >= 12 ? 'p' : 'a';
+    return `${hour % 12 || 12}${suffix}`;
   }
 
   selectDate(date: string): void {

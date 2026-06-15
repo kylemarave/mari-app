@@ -109,7 +109,7 @@ export class PdfFlashcardService {
       }
     }
 
-    return cards.slice(0, 40);
+    return cards;
   }
 
   private async extractText(file: File): Promise<{ text: string; pageCount: number }> {
@@ -212,7 +212,6 @@ export class PdfFlashcardService {
 
     return drafts
       .sort((a, b) => b.score - a.score)
-      .slice(0, 20)
       .map((card) => ({
         id: createId('c'),
         question: this.trimTo(card.question, 120),

@@ -91,13 +91,13 @@ import { UtilitySidebarComponent } from '../../shared/utility-sidebar/utility-si
           }
         </header>
 
-        <div class="flex min-h-0 flex-1">
-          <main class="mari-scroll-area min-h-0 min-w-0 flex-1 px-4 py-5 lg:px-8 lg:py-6">
+        <div class="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+          <main class="mari-scroll-area min-h-0 min-w-0 flex-1 px-4 py-4 lg:px-6 lg:py-5">
             <router-outlet />
           </main>
 
           <app-utility-sidebar
-            class="mari-scroll-area hidden h-full w-[300px] shrink-0 xl:block"
+            class="mari-sidebar-scroll hidden h-full w-[min(100%,300px)] xl:block"
             [profile]="store.student()"
           />
         </div>

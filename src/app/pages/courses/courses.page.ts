@@ -4,7 +4,7 @@ import { LucidePlus, LucideSearch } from '@lucide/angular';
 import { CourseAccent } from '../../core/models/mari.models';
 import { MariStoreService } from '../../core/services/mari-store.service';
 import { CourseGridComponent } from '../../shared/course-grid/course-grid.component';
-import { hexToStyles, normalizeHex, validateHex } from '../../core/utils/course-color';
+import { normalizeHex, validateHex } from '../../core/utils/course-color';
 
 @Component({
   selector: 'app-courses-page',
@@ -24,65 +24,79 @@ import { hexToStyles, normalizeHex, validateHex } from '../../core/utils/course-
         </div>
       </div>
 
-      <form
-        (ngSubmit)="addFolder()"
-        class="mari-surface-elevated mb-5 grid grid-cols-1 gap-4 p-4 lg:grid-cols-12 lg:items-end"
-      >
-        <div class="lg:col-span-3">
-          <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-mari-text-tertiary">
-            Folder name
-          </label>
-          <input type="text" [(ngModel)]="folderTitle" name="folderTitle" placeholder="e.g. Biology 101" class="mari-input" required />
-        </div>
-        <div class="lg:col-span-3">
-          <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-mari-text-tertiary">
-            Professor
-          </label>
-          <input type="text" [(ngModel)]="folderProfessor" name="folderProfessor" placeholder="Instructor name" class="mari-input" />
-        </div>
-        <div class="lg:col-span-4">
-          <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-mari-text-tertiary">
-            Folder color
-          </label>
-          <div class="flex flex-wrap items-center gap-2">
-            @for (accent of accents; track accent.value) {
-              <button
-                type="button"
-                (click)="selectPreset(accent.value)"
-                class="size-8 rounded-full ring-2 ring-offset-2 ring-offset-mari-bg transition-all"
-                [class]="presetSwatchClass(accent.value)"
-                [class.ring-mari-primary]="folderAccent === accent.value && !folderCustomHex"
-                [attr.aria-label]="accent.label"
-              ></button>
-            }
-            <input type="color" [(ngModel)]="folderColorPicker" name="folderColorPicker" class="size-9 cursor-pointer rounded-[10px] border border-mari-border bg-mari-bg" />
-            <input
-              type="text"
-              [(ngModel)]="folderCustomHex"
-              name="folderCustomHex"
-              placeholder="#534ab7"
-              class="mari-input min-w-[7rem] flex-1 font-mono text-sm uppercase"
-              (input)="onHexInput()"
-            />
+      <form (ngSubmit)="addFolder()" class="mari-surface-elevated mb-5 space-y-3 p-4">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
+          <div class="lg:col-span-4">
+            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-mari-text-tertiary">
+              Folder name
+            </label>
+            <input type="text" [(ngModel)]="folderTitle" name="folderTitle" placeholder="e.g. Biology 101" class="mari-input" required />
+          </div>
+          <div class="lg:col-span-4">
+            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-mari-text-tertiary">
+              Professor
+            </label>
+            <input type="text" [(ngModel)]="folderProfessor" name="folderProfessor" placeholder="Instructor name" class="mari-input" />
+          </div>
+          <div class="sm:col-span-2 lg:col-span-4">
+            <button type="submit" [disabled]="!folderTitle.trim()" class="mari-btn-primary w-full">
+              <svg lucidePlus [size]="16"></svg>
+              Add folder
+            </button>
           </div>
         </div>
-        <div class="lg:col-span-2">
-          <button type="submit" [disabled]="!folderTitle.trim()" class="mari-btn-primary w-full">
-            <svg lucidePlus [size]="16"></svg>
-            Add folder
-          </button>
-        </div>
 
-        <div class="lg:col-span-12">
-          <div
-            class="rounded-[16px] border border-mari-border p-4 shadow-sm transition-all"
-            [style.background]="previewCardStyle().cardBg"
-          >
-            <div class="mb-2 h-1.5 rounded-full" [style.background]="previewCardStyle().bar"></div>
-            <div class="text-sm font-semibold" [style.color]="previewCardStyle().text">Preview · {{ folderTitle || 'New folder' }}</div>
-            <p class="mt-1 text-xs opacity-80" [style.color]="previewCardStyle().text">
-              {{ previewColorLabel() }}
-            </p>
+        <div>
+          <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-mari-text-tertiary">
+            Folder color
+          </label>
+          <div class="overflow-hidden rounded-[12px] border border-mari-border bg-mari-bg-secondary/50 px-3 py-2.5">
+            <div class="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3">
+              <div class="flex items-center gap-1.5" role="group" aria-label="Preset colors">
+                @for (accent of accents; track accent.value) {
+                  <button
+                    type="button"
+                    (click)="selectPreset(accent.value)"
+                    class="size-7 shrink-0 rounded-full transition-all hover:scale-105"
+                    [class]="presetSwatchClass(accent.value)"
+                    [class.ring-2]="folderAccent === accent.value && !folderCustomHex"
+                    [class.ring-mari-text]="folderAccent === accent.value && !folderCustomHex"
+                    [class.ring-offset-2]="folderAccent === accent.value && !folderCustomHex"
+                    [class.ring-offset-mari-bg-secondary]="folderAccent === accent.value && !folderCustomHex"
+                    [attr.aria-label]="accent.label"
+                    [attr.aria-pressed]="folderAccent === accent.value && !folderCustomHex"
+                  ></button>
+                }
+              </div>
+
+              <div class="hidden h-6 w-px shrink-0 bg-mari-border sm:block"></div>
+
+              <div class="flex min-w-0 items-center gap-2 sm:max-w-[11rem]">
+                <span class="shrink-0 text-[11px] font-medium text-mari-text-tertiary">Custom</span>
+                <label class="inline-flex shrink-0 cursor-pointer items-center">
+                  <span
+                    class="size-7 rounded-[8px] border border-mari-border shadow-sm"
+                    [style.background]="folderColorPicker"
+                  ></span>
+                  <input
+                    type="color"
+                    [(ngModel)]="folderColorPicker"
+                    name="folderColorPicker"
+                    (input)="onColorPickerChange()"
+                    class="sr-only"
+                  />
+                </label>
+                <input
+                  type="text"
+                  [(ngModel)]="folderCustomHex"
+                  name="folderCustomHex"
+                  placeholder="#534AB7"
+                  maxlength="7"
+                  class="mari-input h-8 min-w-0 flex-1 px-2.5 font-mono text-xs uppercase"
+                  (input)="onHexInput()"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </form>
@@ -144,20 +158,6 @@ export class CoursesPage {
     );
   });
 
-  protected readonly previewCardStyle = computed(() => {
-    const hex = normalizeHex(this.folderCustomHex) || normalizeHex(this.folderColorPicker);
-    if (hex) return hexToStyles(hex);
-    return hexToStyles(
-      {
-        violet: '#534ab7',
-        teal: '#1d9e75',
-        coral: '#d85a30',
-        amber: '#ba7517',
-        sage: '#639922',
-      }[this.folderAccent],
-    );
-  });
-
   presetSwatchClass(accent: CourseAccent): string {
     return this.accents.find((a) => a.value === accent)?.swatch ?? 'bg-mari-primary';
   }
@@ -182,9 +182,8 @@ export class CoursesPage {
     }
   }
 
-  previewColorLabel(): string {
-    const hex = normalizeHex(this.folderCustomHex) || normalizeHex(this.folderColorPicker);
-    return hex ? `Custom ${hex}` : `Preset · ${this.folderAccent}`;
+  onColorPickerChange(): void {
+    this.folderCustomHex = this.folderColorPicker.toUpperCase();
   }
 
   addFolder(): void {
@@ -205,17 +204,6 @@ export class CoursesPage {
     this.folderAccent = 'violet';
     this.folderCustomHex = '';
     this.folderColorPicker = '#534ab7';
-  }
-
-  presetHex(accent: CourseAccent): string {
-    const map: Record<CourseAccent, string> = {
-      violet: '#534ab7',
-      teal: '#1d9e75',
-      coral: '#d85a30',
-      amber: '#ba7517',
-      sage: '#639922',
-    };
-    return map[accent];
   }
 
   requestDelete(courseId: string): void {
