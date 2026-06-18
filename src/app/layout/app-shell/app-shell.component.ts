@@ -7,6 +7,7 @@ import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component
 import { CountdownBannerComponent } from '../../shared/countdown-banner/countdown-banner.component';
 import { NavRailComponent } from '../../shared/nav-rail/nav-rail.component';
 import { UtilitySidebarComponent } from '../../shared/utility-sidebar/utility-sidebar.component';
+import { MariLogoComponent } from '../../shared/mari-logo/mari-logo.component';
 
 @Component({
   selector: 'app-shell',
@@ -19,6 +20,7 @@ import { UtilitySidebarComponent } from '../../shared/utility-sidebar/utility-si
     BottomNavComponent,
     UtilitySidebarComponent,
     CountdownBannerComponent,
+    MariLogoComponent,
     LucideSettings,
     LucideBell,
     LucideTimer,
@@ -32,11 +34,7 @@ import { UtilitySidebarComponent } from '../../shared/utility-sidebar/utility-si
         <header class="z-20 shrink-0 border-b border-mari-border/80 bg-mari-bg/90 backdrop-blur-md">
           <div class="flex items-center justify-between gap-4 px-4 py-3 lg:px-8">
             <div class="flex min-w-0 items-center gap-3 lg:hidden">
-              <div
-                class="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-mari-primary to-mari-primary-dark text-xs font-bold text-white shadow-sm"
-              >
-                M
-              </div>
+              <app-mari-logo size="sm" />
               <div>
                 <div class="text-sm font-semibold text-mari-text">Mari</div>
                 <div class="text-[11px] text-mari-text-tertiary">{{ todayLabel }}</div>

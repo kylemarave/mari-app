@@ -19,11 +19,17 @@ import {
   LucideTimer,
   LucideZap,
 } from '@lucide/angular';
+import {
+  MariBadgeIcon,
+  MariBadgeVariant,
+  MariIconBadgeComponent,
+} from '../../shared/mari-icon-badge/mari-icon-badge.component';
 
 @Component({
   selector: 'app-landing-page',
   imports: [
     RouterLink,
+    MariIconBadgeComponent,
     LucideSparkles,
     LucideArrowRight,
     LucideCheckSquare,
@@ -49,7 +55,7 @@ import {
               class="mari-landing-enter mari-chip bg-mari-bg/90 text-mari-primary-dark ring-1 ring-mari-primary-muted/40"
             >
               <svg lucideSparkles [size]="12"></svg>
-              Your semester, sorted ✨
+              Your semester, sorted
             </span>
 
             <h1
@@ -92,9 +98,9 @@ import {
             >
               @for (pill of trustPills; track pill.label) {
                 <span
-                  class="inline-flex items-center gap-1.5 rounded-full border border-mari-border/80 bg-mari-bg/80 px-3 py-1 text-xs font-medium text-mari-text-secondary backdrop-blur-sm"
+                  class="inline-flex items-center gap-2 rounded-full border border-mari-border/80 bg-mari-bg/80 px-3 py-1.5 text-xs font-medium text-mari-text-secondary backdrop-blur-sm"
                 >
-                  <span>{{ pill.emoji }}</span>
+                  <app-mari-icon-badge [icon]="pill.icon" [variant]="pill.variant" size="xs" />
                   {{ pill.label }}
                 </span>
               }
@@ -103,24 +109,27 @@ import {
 
           <!-- Product preview -->
           <div class="mari-landing-enter mari-landing-enter-delay-2 relative min-w-0">
-            <span
+            <div
               class="mari-landing-sticker mari-landing-sticker-1"
               aria-hidden="true"
               style="--landing-rotate: 8deg"
-              >📚</span
             >
-            <span
+              <app-mari-icon-badge icon="book" variant="primary" size="sm" />
+            </div>
+            <div
               class="mari-landing-sticker mari-landing-sticker-2"
               aria-hidden="true"
               style="--landing-rotate: -12deg"
-              >☕</span
             >
-            <span
+              <app-mari-icon-badge icon="coffee" variant="amber" size="sm" />
+            </div>
+            <div
               class="mari-landing-sticker mari-landing-sticker-3"
               aria-hidden="true"
               style="--landing-rotate: 6deg"
-              >🎯</span
             >
+              <app-mari-icon-badge icon="target" variant="coral" size="sm" />
+            </div>
 
             <div class="mari-landing-frame-float mari-product-frame">
               <div class="mari-product-frame-chrome bg-mari-bg-secondary/50">
@@ -134,7 +143,7 @@ import {
               <div class="bg-mari-bg-secondary/30 p-4 sm:p-5">
                 <div class="mb-3 flex items-center justify-between">
                   <p class="text-xs font-semibold text-mari-text">
-                    Hey, Alex 👋 <span class="font-normal text-mari-text-tertiary">· 3 due today</span>
+                    Hey, Alex <span class="font-normal text-mari-text-tertiary">· 3 due today</span>
                   </p>
                   <span
                     class="mari-chip bg-accent-coral-bg text-accent-coral-text animate-pulse"
@@ -155,7 +164,10 @@ import {
                       Task board
                     </p>
                     <p class="mt-1 text-xs font-medium text-mari-text">Lab report · due tonight</p>
-                    <p class="text-xs text-accent-coral-text">High priority 🔥</p>
+                    <p class="flex items-center gap-1 text-xs text-accent-coral-text">
+                      <app-mari-icon-badge icon="flame" variant="coral" size="xs" />
+                      High priority
+                    </p>
                   </div>
                   <div class="mari-landing-flashcard">
                     <p class="text-[10px] font-semibold text-mari-primary-dark">Flashcard</p>
@@ -192,15 +204,15 @@ import {
     <!-- Marquee -->
     <section class="overflow-hidden border-b border-mari-border/60 bg-mari-bg/70 py-4" aria-hidden="true">
       <div class="mari-landing-marquee-track">
-        @for (item of marqueeItems; track $index) {
+        @for (item of marqueeItems; track item.text) {
           <span class="mari-landing-marquee-item">
-            <span>{{ item.emoji }}</span>
+            <app-mari-icon-badge [icon]="item.icon" [variant]="item.variant" size="xs" />
             {{ item.text }}
           </span>
         }
-        @for (item of marqueeItems; track $index) {
+        @for (item of marqueeItems; track item.text + '-dup') {
           <span class="mari-landing-marquee-item">
-            <span>{{ item.emoji }}</span>
+            <app-mari-icon-badge [icon]="item.icon" [variant]="item.variant" size="xs" />
             {{ item.text }}
           </span>
         }
@@ -271,7 +283,7 @@ import {
                   >
                     <svg lucideBookOpen [size]="28" class="mx-auto text-mari-primary"></svg>
                     <p class="mt-2 text-sm font-semibold text-mari-text">Drop your lecture PDF</p>
-                    <p class="text-xs text-mari-text-tertiary">AI builds your deck in seconds ⚡</p>
+                    <p class="text-xs text-mari-text-tertiary">AI builds your deck in seconds</p>
                   </div>
                   @for (card of flashcardPreview; track card; let ci = $index) {
                     <div
@@ -305,10 +317,10 @@ import {
                 <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   @for (course of previewCourses; track course.code) {
                     <div
-                      class="mari-landing-course-tile flex cursor-default flex-col items-center gap-1.5 rounded-[12px] border border-mari-border/80 p-3"
+                      class="mari-landing-course-tile flex cursor-default flex-col items-center gap-2 rounded-[12px] border border-mari-border/80 p-3"
                       [class]="course.bg"
                     >
-                      <span class="text-2xl">{{ course.emoji }}</span>
+                      <app-mari-icon-badge [icon]="course.icon" [variant]="course.variant" size="md" />
                       <span class="text-xs font-bold" [class]="course.text">{{ course.code }}</span>
                     </div>
                   }
@@ -413,9 +425,9 @@ import {
               [class.mari-landing-reveal-delay-1]="bi === 1"
               [class.mari-landing-reveal-delay-2]="bi === 2"
             >
-              <span class="mari-landing-benefit-emoji" [style.animation-delay]="bi * 0.5 + 's'">{{
-                benefit.emoji
-              }}</span>
+              <span class="mari-landing-benefit-emoji" [style.animation-delay]="bi * 0.5 + 's'">
+                <app-mari-icon-badge [icon]="benefit.icon" [variant]="benefit.variant" size="md" />
+              </span>
               <h3 class="mt-3 text-sm font-bold text-mari-text">{{ benefit.title }}</h3>
               <p class="mt-1.5 text-xs leading-relaxed text-mari-text-secondary">
                 {{ benefit.description }}
@@ -430,7 +442,7 @@ import {
     <section class="mari-public-section pb-20" [attr.data-reveal]="''">
       <div class="mari-public-container">
         <div class="mari-landing-reveal mari-landing-cta mx-auto max-w-xl sm:max-w-2xl">
-          <span class="text-3xl" aria-hidden="true">🚀</span>
+          <app-mari-icon-badge icon="rocket" variant="primary" size="md" class="mx-auto" />
           <h2 class="mt-3 text-xl font-bold text-mari-text sm:text-2xl lg:text-3xl">
             Your best semester starts now
           </h2>
@@ -465,19 +477,27 @@ export class LandingPage {
   protected readonly rotatingWord = signal('every class');
   private readonly rotatingWords = ['every class', 'exam week', 'group projects', 'deadline season'];
 
-  protected readonly trustPills = [
-    { emoji: '🆓', label: 'Free to start' },
-    { emoji: '⚡', label: 'Sign up in 30 sec' },
-    { emoji: '🔒', label: 'Your data stays yours' },
+  protected readonly trustPills: {
+    icon: MariBadgeIcon;
+    variant: MariBadgeVariant;
+    label: string;
+  }[] = [
+    { icon: 'gift', variant: 'primary', label: 'Free to start' },
+    { icon: 'zap', variant: 'amber', label: 'Sign up in 30 sec' },
+    { icon: 'shield', variant: 'teal', label: 'Your data stays yours' },
   ];
 
-  protected readonly marqueeItems = [
-    { emoji: '📐', text: 'MATH 201 — problem set due Friday' },
-    { emoji: '🧪', text: 'CHEM lab report — high priority' },
-    { emoji: '💻', text: 'CS project — 3 tasks on board' },
-    { emoji: '📝', text: 'ENG essay — flashcards ready' },
-    { emoji: '🧬', text: 'BIO midterm — 4 days left' },
-    { emoji: '☕', text: 'Pomodoro streak — 5 sessions today' },
+  protected readonly marqueeItems: {
+    icon: MariBadgeIcon;
+    variant: MariBadgeVariant;
+    text: string;
+  }[] = [
+    { icon: 'calculator', variant: 'primary', text: 'MATH 201 — problem set due Friday' },
+    { icon: 'flask', variant: 'teal', text: 'CHEM lab report — high priority' },
+    { icon: 'monitor', variant: 'blue', text: 'CS project — 3 tasks on board' },
+    { icon: 'pen', variant: 'coral', text: 'ENG essay — flashcards ready' },
+    { icon: 'dna', variant: 'sage', text: 'BIO midterm — 4 days left' },
+    { icon: 'timer', variant: 'amber', text: 'Pomodoro streak — 5 sessions today' },
   ];
 
   protected readonly previewStats = [
@@ -498,13 +518,19 @@ export class LandingPage {
     { name: 'Done', tasks: ['Quiz prep ✓'] },
   ];
 
-  protected readonly previewCourses = [
-    { code: 'MATH', emoji: '📐', bg: 'bg-mari-primary-light/70', text: 'text-mari-primary-dark' },
-    { code: 'CHEM', emoji: '🧪', bg: 'bg-accent-teal-bg/70', text: 'text-accent-teal-text' },
-    { code: 'ENG', emoji: '📝', bg: 'bg-accent-coral-bg/70', text: 'text-accent-coral-text' },
-    { code: 'CS', emoji: '💻', bg: 'bg-accent-blue-bg/70', text: 'text-accent-blue-text' },
-    { code: 'BIO', emoji: '🧬', bg: 'bg-accent-sage-bg/70', text: 'text-accent-sage-text' },
-    { code: 'HIST', emoji: '📜', bg: 'bg-accent-amber-bg/70', text: 'text-accent-amber-text' },
+  protected readonly previewCourses: {
+    code: string;
+    icon: MariBadgeIcon;
+    variant: MariBadgeVariant;
+    bg: string;
+    text: string;
+  }[] = [
+    { code: 'MATH', icon: 'calculator', variant: 'primary', bg: 'bg-mari-primary-light/70', text: 'text-mari-primary-dark' },
+    { code: 'CHEM', icon: 'flask', variant: 'teal', bg: 'bg-accent-teal-bg/70', text: 'text-accent-teal-text' },
+    { code: 'ENG', icon: 'pen', variant: 'coral', bg: 'bg-accent-coral-bg/70', text: 'text-accent-coral-text' },
+    { code: 'CS', icon: 'monitor', variant: 'blue', bg: 'bg-accent-blue-bg/70', text: 'text-accent-blue-text' },
+    { code: 'BIO', icon: 'dna', variant: 'sage', bg: 'bg-accent-sage-bg/70', text: 'text-accent-sage-text' },
+    { code: 'HIST', icon: 'scroll', variant: 'amber', bg: 'bg-accent-amber-bg/70', text: 'text-accent-amber-text' },
   ];
 
   protected readonly spotlights = [
@@ -554,19 +580,27 @@ export class LandingPage {
     },
   ];
 
-  protected readonly benefits = [
+  protected readonly benefits: {
+    icon: MariBadgeIcon;
+    variant: MariBadgeVariant;
+    title: string;
+    description: string;
+  }[] = [
     {
-      emoji: '🎒',
+      icon: 'layers',
+      variant: 'primary',
       title: 'One app, not five',
       description: 'Tasks, calendar, files, flashcards, and focus — stop switching between tabs.',
     },
     {
-      emoji: '📱',
+      icon: 'smartphone',
+      variant: 'blue',
       title: 'Phone or laptop',
       description: 'Bottom nav on mobile, full dashboard on desktop. Study on the bus or at your desk.',
     },
     {
-      emoji: '🎯',
+      icon: 'target',
+      variant: 'coral',
       title: 'Exam countdown',
       description: 'See days until your next big test right on the dashboard.',
     },

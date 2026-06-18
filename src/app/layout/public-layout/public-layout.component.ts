@@ -2,21 +2,18 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { LucideArrowRight } from '@lucide/angular';
 import { AuthService } from '../../core/services/auth.service';
+import { MariLogoComponent } from '../../shared/mari-logo/mari-logo.component';
 
 @Component({
   selector: 'app-public-layout',
   host: { class: 'block h-dvh w-full overflow-hidden' },
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideArrowRight],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideArrowRight, MariLogoComponent],
   template: `
     <div class="flex h-full min-h-0 flex-col mari-bg-mesh">
       <header class="z-30 shrink-0 border-b border-mari-border/80 bg-mari-bg/90 backdrop-blur-md">
         <div class="mari-public-container flex items-center justify-between gap-4 py-3.5">
           <a routerLink="/" class="group flex min-w-0 items-center gap-3">
-            <div
-              class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-mari-primary to-mari-primary-dark text-sm font-bold text-white shadow-md transition-transform group-hover:scale-105"
-            >
-              M
-            </div>
+            <app-mari-logo size="md" [animated]="true" />
             <div class="min-w-0">
               <span class="block text-base font-semibold text-mari-text">Mari</span>
               <span class="block truncate text-[11px] text-mari-text-tertiary">Student workspace</span>
@@ -61,11 +58,7 @@ import { AuthService } from '../../core/services/auth.service';
             <div class="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
               <div class="max-w-xs">
                 <div class="flex items-center gap-2.5">
-                  <div
-                    class="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-mari-primary to-mari-primary-dark text-xs font-bold text-white shadow-sm"
-                  >
-                    M
-                  </div>
+                  <app-mari-logo size="sm" />
                   <div>
                     <span class="block text-sm font-semibold text-mari-text">Mari</span>
                     <span class="text-xs text-mari-text-tertiary">Built for busy semesters</span>

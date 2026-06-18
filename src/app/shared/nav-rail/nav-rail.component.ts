@@ -10,12 +10,14 @@ import {
   LucideTimer,
 } from '@lucide/angular';
 import { NAV_ITEMS } from '../../core/data/seed-data';
+import { MariLogoComponent } from '../mari-logo/mari-logo.component';
 
 @Component({
   selector: 'app-nav-rail',
   imports: [
     RouterLink,
     RouterLinkActive,
+    MariLogoComponent,
     LucideLayoutDashboard,
     LucideFolder,
     LucideCalendar,
@@ -29,11 +31,7 @@ import { NAV_ITEMS } from '../../core/data/seed-data';
       class="flex h-full w-[252px] shrink-0 flex-col overflow-y-auto border-r border-mari-border/80 bg-mari-bg/95 p-5 backdrop-blur-sm"
     >
       <div class="mb-8 flex items-center gap-3 px-1">
-        <div
-          class="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-mari-primary to-mari-primary-dark text-sm font-bold text-white shadow-md"
-        >
-          M
-        </div>
+        <app-mari-logo size="md" />
         <div>
           <span class="block text-base font-semibold text-mari-text">Mari</span>
           <span class="text-[11px] text-mari-text-tertiary">Student workspace</span>
