@@ -1,13 +1,12 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { SupabaseClient, createClient } from '@supabase/supabase-js';
-import { environment } from '../../../environments/environment';
 import {
   FREE_AI_IMPORTS_PER_MONTH,
   UserPlan,
   UserProfile,
 } from '../models/profile.models';
 import { AuthService } from './auth.service';
+import { SupabaseService } from './supabase.service';
 
 interface ProfileRow {
   id: string;
@@ -21,8 +20,8 @@ interface ProfileRow {
 export class ProfileService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly auth = inject(AuthService);
+  private readonly supabaseService = inject(SupabaseService);
 
-  private readonly client: SupabaseClient | null;
   private readonly profileSignal = signal<UserProfile | null>(null);
   private loadPromise: Promise<void> | null = null;
 
@@ -37,25 +36,14 @@ export class ProfileService {
     return Math.max(0, limit - this.aiImportsUsed());
   });
 
-  constructor() {
-    if (
-      isPlatformBrowser(this.platformId) &&
-      environment.supabaseUrl &&
-      environment.supabaseAnonKey
-    ) {
-      this.client = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
-    } else {
-      this.client = null;
-    }
-  }
-
   clear(): void {
     this.profileSignal.set(null);
     this.loadPromise = null;
   }
 
   refresh(): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || !this.client || !this.auth.isAuthenticated()) {
+    const client = this.supabaseService.supabase;
+    if (!isPlatformBrowser(this.platformId) || !client || !this.auth.isAuthenticated()) {
       this.profileSignal.set(null);
       return Promise.resolve();
     }
@@ -69,7 +57,8 @@ export class ProfileService {
   }
 
   private async fetchProfile(): Promise<void> {
-    if (!this.client) return;
+    const client = this.supabaseService.supabase;
+    if (!client) return;
 
     const session = this.auth.session();
     if (!session) {
@@ -77,12 +66,7 @@ export class ProfileService {
       return;
     }
 
-    await this.client.auth.setSession({
-      access_token: session.access_token,
-      refresh_token: session.refresh_token,
-    });
-
-    const { data, error } = await this.client
+    const { data, error } = await client
       .from('profiles')
       .select('id, plan, ai_imports_used, ai_imports_period, stripe_customer_id')
       .eq('id', session.user.id)

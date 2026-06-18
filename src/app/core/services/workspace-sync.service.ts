@@ -1,9 +1,8 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
-import { SupabaseClient, createClient } from '@supabase/supabase-js';
-import { environment } from '../../../environments/environment';
 import { AppState } from '../models/mari.models';
 import { AuthService } from './auth.service';
+import { SupabaseService } from './supabase.service';
 import {
   getLocalSyncAt,
   hasWorkspaceContent,
@@ -28,8 +27,8 @@ interface WorkspaceRow {
 export class WorkspaceSyncService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly auth = inject(AuthService);
+  private readonly supabaseService = inject(SupabaseService);
 
-  private readonly client: SupabaseClient | null;
   private pushTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingPush: { userId: string; state: AppState } | null = null;
   private pushPromise: Promise<void> | null = null;
@@ -37,18 +36,6 @@ export class WorkspaceSyncService {
   readonly status = signal<WorkspaceSyncStatus>('idle');
   readonly lastSyncedAt = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
-
-  constructor() {
-    if (
-      isPlatformBrowser(this.platformId) &&
-      environment.supabaseUrl &&
-      environment.supabaseAnonKey
-    ) {
-      this.client = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
-    } else {
-      this.client = null;
-    }
-  }
 
   clear(): void {
     this.cancelPush();
@@ -59,7 +46,8 @@ export class WorkspaceSyncService {
 
   /** Pull remote workspace and resolve merge against local (last-write-wins by timestamp). */
   async reconcile(userId: string, localState: AppState): Promise<AppState> {
-    if (!this.client || !isPlatformBrowser(this.platformId)) {
+    const client = this.supabaseService.supabase;
+    if (!client || !isPlatformBrowser(this.platformId)) {
       this.status.set('offline');
       return localState;
     }
@@ -68,7 +56,7 @@ export class WorkspaceSyncService {
     this.errorMessage.set(null);
 
     try {
-      if (!(await this.ensureSession())) {
+      if (!this.auth.isAuthenticated()) {
         this.status.set('offline');
         return localState;
       }
@@ -118,7 +106,7 @@ export class WorkspaceSyncService {
   }
 
   schedulePush(userId: string, state: AppState): void {
-    if (!this.client || !isPlatformBrowser(this.platformId)) return;
+    if (!this.supabaseService.supabase || !isPlatformBrowser(this.platformId)) return;
 
     this.pendingPush = { userId, state };
     if (this.pushTimer) clearTimeout(this.pushTimer);
@@ -150,18 +138,19 @@ export class WorkspaceSyncService {
   }
 
   private async pushNow(userId: string, state: AppState): Promise<void> {
-    if (!this.client) return;
+    const client = this.supabaseService.supabase;
+    if (!client) return;
 
     this.status.set('syncing');
     this.errorMessage.set(null);
 
     try {
-      if (!(await this.ensureSession())) {
+      if (!this.auth.isAuthenticated()) {
         this.status.set('offline');
         return;
       }
 
-      const { data, error } = await this.client
+      const { data, error } = await client
         .from('workspace_state')
         .upsert(
           {
@@ -189,9 +178,10 @@ export class WorkspaceSyncService {
   }
 
   private async fetchRemote(userId: string): Promise<RemoteWorkspace | null> {
-    if (!this.client) return null;
+    const client = this.supabaseService.supabase;
+    if (!client) return null;
 
-    const { data, error } = await this.client
+    const { data, error } = await client
       .from('workspace_state')
       .select('user_id, state, updated_at')
       .eq('user_id', userId)
@@ -205,18 +195,5 @@ export class WorkspaceSyncService {
     if (!state) return null;
 
     return { state, updatedAt: row.updated_at };
-  }
-
-  private async ensureSession(): Promise<boolean> {
-    if (!this.client) return false;
-
-    const session = this.auth.session();
-    if (!session) return false;
-
-    await this.client.auth.setSession({
-      access_token: session.access_token,
-      refresh_token: session.refresh_token,
-    });
-    return true;
   }
 }

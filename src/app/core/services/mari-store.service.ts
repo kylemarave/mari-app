@@ -323,6 +323,10 @@ export class MariStoreService {
   }
 
   bindUser(userId: string | null): void {
+    if (userId === this.userId) {
+      return;
+    }
+
     this.userId = userId;
     this.fileStorage.bindUser(userId);
     this.syncService.clear();
