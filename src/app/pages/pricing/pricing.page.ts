@@ -1,13 +1,19 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import {
   LucideArrowRight,
   LucideCheck,
   LucideGraduationCap,
+  LucideLoaderCircle,
   LucideSparkles,
   LucideX,
   LucideZap,
 } from '@lucide/angular';
+import { AuthService } from '../../core/services/auth.service';
+import { STRIPE_BILLING_ENABLED } from '../../core/config/features';
+import { BillingService } from '../../core/services/billing.service';
+import { ProfileService } from '../../core/services/profile.service';
+import { FREE_AI_IMPORTS_PER_MONTH } from '../../core/models/profile.models';
 
 type PlanFeature = { label: string; included: boolean };
 
@@ -21,10 +27,10 @@ type PlanFeature = { label: string; included: boolean };
     LucideGraduationCap,
     LucideZap,
     LucideArrowRight,
+    LucideLoaderCircle,
   ],
   template: `
     <div class="mari-public-container pb-16 pt-8 sm:pt-12">
-      <!-- Hero -->
       <section class="mari-hero p-5 text-center sm:p-8">
         <div class="mb-2 flex items-center justify-center gap-1.5">
           <svg lucideSparkles [size]="14" class="text-mari-primary"></svg>
@@ -37,15 +43,14 @@ type PlanFeature = { label: string; included: boolean };
         </h1>
         <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-mari-text-secondary sm:text-base">
           The full workspace is free — Pro unlocks unlimited AI PDF imports when you are drowning in
-          lecture slides. Billing arrives in Phase 3 (Stripe not yet).
+          lecture slides.
         </p>
         <div class="mt-5 flex flex-wrap items-center justify-center gap-2">
           <span class="mari-chip bg-mari-bg/90 text-mari-text-secondary">🎓 Student budget friendly</span>
-          <span class="mari-chip bg-accent-teal-bg text-accent-teal-text">No credit card required</span>
+          <span class="mari-chip bg-accent-teal-bg text-accent-teal-text">No credit card for Free</span>
         </div>
       </section>
 
-      <!-- Quick compare stats -->
       <section class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-3">
         @for (highlight of planHighlights; track highlight.label) {
           <div class="mari-stat text-center !p-4">
@@ -56,9 +61,7 @@ type PlanFeature = { label: string; included: boolean };
         }
       </section>
 
-      <!-- Plan cards -->
       <div class="mt-10 grid gap-5 lg:grid-cols-2 lg:gap-6">
-        <!-- Free -->
         <article class="mari-surface-elevated flex flex-col p-6 sm:p-7">
           <div class="mari-section-head-sm !mb-4">
             <div class="mari-section-title">
@@ -99,14 +102,9 @@ type PlanFeature = { label: string; included: boolean };
           </a>
         </article>
 
-        <!-- Pro -->
         <article
           class="relative flex flex-col overflow-hidden rounded-[12px] border-2 border-mari-primary bg-mari-bg p-6 shadow-[var(--shadow-mari-lg)] sm:p-7"
         >
-          <div
-            class="pointer-events-none absolute -right-6 -top-6 size-28 rounded-full bg-mari-primary/10"
-          ></div>
-
           <span
             class="absolute right-4 top-4 rounded-full bg-mari-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
           >
@@ -129,7 +127,6 @@ type PlanFeature = { label: string; included: boolean };
             <span class="text-4xl font-bold tracking-tight text-mari-text">$8</span>
             <span class="text-sm text-mari-text-tertiary"> / month</span>
           </p>
-          <p class="relative mt-1 text-xs text-mari-text-tertiary">Billing arrives in Phase 2</p>
 
           <ul class="relative mt-6 flex flex-1 flex-col gap-2.5">
             @for (feature of proFeatures; track feature.label) {
@@ -140,17 +137,42 @@ type PlanFeature = { label: string; included: boolean };
             }
           </ul>
 
-          <a routerLink="/signup" class="mari-btn-primary relative mt-7 w-full !py-2.5 !text-sm">
-            Try workspace now
-            <svg lucideArrowRight [size]="15"></svg>
-          </a>
-          <p class="relative mt-2 text-center text-[11px] text-mari-text-tertiary">
-            Use the app today — upgrade flow coming in Phase 2
-          </p>
+          @if (profile.isPro()) {
+            <a routerLink="/settings" class="mari-btn-primary relative mt-7 w-full !py-2.5 !text-sm">
+              Manage plan in Settings
+            </a>
+          } @else if (billingEnabled && auth.isAuthenticated()) {
+            <button
+              type="button"
+              (click)="upgrade()"
+              class="mari-btn-primary relative mt-7 w-full !py-2.5 !text-sm"
+              [disabled]="billing.loading()"
+            >
+              @if (billing.loading()) {
+                <svg lucideLoaderCircle [size]="16" class="animate-spin"></svg>
+                Opening checkout…
+              } @else {
+                Upgrade to Pro
+                <svg lucideArrowRight [size]="15"></svg>
+              }
+            </button>
+          } @else if (auth.isAuthenticated()) {
+            <p class="relative mt-7 rounded-[12px] border border-mari-border bg-mari-bg-secondary/60 px-4 py-3 text-center text-sm text-mari-text-secondary">
+              Pro checkout is coming soon. You still get {{ freeAiImports }} AI PDF imports per month on Free.
+            </p>
+          } @else {
+            <a routerLink="/signup" class="mari-btn-primary relative mt-7 w-full !py-2.5 !text-sm">
+              Start free, upgrade later
+              <svg lucideArrowRight [size]="15"></svg>
+            </a>
+          }
+
+          @if (billing.errorMessage()) {
+            <p class="relative mt-2 text-center text-xs text-accent-coral-text">{{ billing.errorMessage() }}</p>
+          }
         </article>
       </div>
 
-      <!-- Comparison table -->
       <section class="mt-10 lg:mt-12">
         <div class="mari-section-head mb-4">
           <div class="mari-section-title text-sm">
@@ -173,14 +195,10 @@ type PlanFeature = { label: string; included: boolean };
               </thead>
               <tbody>
                 @for (row of comparisonRows; track row.feature) {
-                  <tr
-                    class="border-b border-mari-border/80 transition-colors last:border-0 hover:bg-mari-bg-secondary/40"
-                  >
+                  <tr class="border-b border-mari-border/80 last:border-0 hover:bg-mari-bg-secondary/40">
                     <td class="px-5 py-3.5 font-medium text-mari-text">{{ row.feature }}</td>
                     <td class="px-5 py-3.5 text-center text-mari-text-secondary">{{ row.free }}</td>
-                    <td class="px-5 py-3.5 text-center font-semibold text-mari-primary-dark">
-                      {{ row.pro }}
-                    </td>
+                    <td class="px-5 py-3.5 text-center font-semibold text-mari-primary-dark">{{ row.pro }}</td>
                   </tr>
                 }
               </tbody>
@@ -189,13 +207,11 @@ type PlanFeature = { label: string; included: boolean };
         </div>
       </section>
 
-      <!-- Bottom CTA -->
       <section class="mt-10">
         <div class="mari-gradient-card p-6 text-center sm:p-8">
           <h2 class="text-lg font-bold text-mari-text sm:text-xl">Not sure yet? Just open the app.</h2>
           <p class="mx-auto mt-2 max-w-md text-sm text-mari-text-secondary">
-            Your dashboard works the same on Free — explore courses, tasks, and study sets before you
-            ever think about upgrading.
+            Your dashboard works the same on Free — explore courses, tasks, and study sets before you upgrade.
           </p>
           <a routerLink="/signup" class="mari-btn-primary mt-5 inline-flex !text-sm">
             Open my workspace
@@ -207,6 +223,13 @@ type PlanFeature = { label: string; included: boolean };
   `,
 })
 export class PricingPage {
+  protected readonly auth = inject(AuthService);
+  protected readonly billing = inject(BillingService);
+  protected readonly profile = inject(ProfileService);
+  protected readonly billingEnabled = STRIPE_BILLING_ENABLED;
+  protected readonly freeAiImports = FREE_AI_IMPORTS_PER_MONTH;
+  private readonly router = inject(Router);
+
   protected readonly planHighlights = [
     { label: 'AI PDF imports', free: '3 / mo', pro: 'Unlimited' },
     { label: 'Flashcards', free: 'Unlimited', pro: 'Unlimited' },
@@ -237,6 +260,14 @@ export class PricingPage {
     { feature: 'Schedule timeline', free: 'Included', pro: 'Included' },
     { feature: 'Course folders', free: 'Included', pro: 'Included' },
     { feature: 'Pomodoro timer', free: 'Included', pro: 'Included' },
-    { feature: 'Cloud sync & accounts', free: 'Phase 2', pro: 'Phase 2' },
+    { feature: 'Cloud workspace sync', free: 'Coming later', pro: 'Coming later' },
   ];
+
+  upgrade(): void {
+    if (!this.auth.isAuthenticated()) {
+      void this.router.navigateByUrl('/signup');
+      return;
+    }
+    void this.billing.startCheckout();
+  }
 }

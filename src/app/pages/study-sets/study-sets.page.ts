@@ -1,8 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { LucideBrain, LucideChevronRight, LucideFileText, LucideTrash2 } from '@lucide/angular';
+import { LucideBrain, LucideChevronRight, LucideFileText, LucideSparkles, LucideTrash2 } from '@lucide/angular';
 import { MariStoreService } from '../../core/services/mari-store.service';
+import { ProfileService } from '../../core/services/profile.service';
 import { PdfDeckUploaderComponent } from '../../shared/pdf-deck-uploader/pdf-deck-uploader.component';
 
 @Component({
@@ -12,6 +13,7 @@ import { PdfDeckUploaderComponent } from '../../shared/pdf-deck-uploader/pdf-dec
     LucideChevronRight,
     LucideBrain,
     LucideFileText,
+    LucideSparkles,
     LucideTrash2,
     DecimalPipe,
     PdfDeckUploaderComponent,
@@ -23,6 +25,16 @@ import { PdfDeckUploaderComponent } from '../../shared/pdf-deck-uploader/pdf-dec
         <p class="mt-1 text-sm text-mari-text-secondary">
           {{ store.studyDecks().length }} decks · spaced repetition flashcards
         </p>
+        @if (!profile.isPro() && profile.aiImportsLimit() !== null) {
+          <p
+            class="mt-3 inline-flex items-center gap-2 rounded-[10px] border border-mari-border bg-mari-bg-secondary/60 px-3 py-2 text-xs text-mari-text-secondary"
+          >
+            <svg lucideSparkles [size]="14" class="text-mari-primary"></svg>
+            AI PDF imports this month: {{ profile.aiImportsUsed() }} / {{ profile.aiImportsLimit() }}
+          </p>
+        } @else if (profile.isPro()) {
+          <p class="mt-3 text-xs text-mari-text-tertiary">Unlimited AI PDF imports on Pro.</p>
+        }
       </div>
 
       <app-pdf-deck-uploader />
@@ -120,6 +132,7 @@ import { PdfDeckUploaderComponent } from '../../shared/pdf-deck-uploader/pdf-dec
 })
 export class StudySetsPage {
   protected readonly store = inject(MariStoreService);
+  protected readonly profile = inject(ProfileService);
   protected readonly confirmingDelete = signal<string | null>(null);
 
   progress(deck: { learned: number; cards: unknown[] }): number {

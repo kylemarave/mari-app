@@ -1,5 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import type { Express, Request, Response } from 'express';
+import { assertAiImportAllowed, incrementAiImportUsage } from './profile-gate';
+import { isSupabaseAdminConfigured } from './supabase-admin';
 
 export interface GeminiStudySetResponse {
   title: string;
@@ -228,6 +230,29 @@ export async function generateStudySetWithGemini(
 export function registerGeminiStudyRoutes(app: Express): void {
   app.post('/api/generate-study-set', async (req: Request, res: Response) => {
     try {
+      if (isSupabaseAdminConfigured()) {
+        const gate = await assertAiImportAllowed(req);
+        if (!gate.ok) {
+          res.status(gate.status).json(gate.body);
+          return;
+        }
+
+        const body = req.body as { text?: string; fileName?: string; pageCount?: number };
+        const text = typeof body.text === 'string' ? body.text.trim() : '';
+        const fileName = typeof body.fileName === 'string' ? body.fileName : 'document.pdf';
+        const pageCount = typeof body.pageCount === 'number' ? body.pageCount : 0;
+
+        if (text.length < 40) {
+          res.status(400).json({ error: 'Not enough text to generate a study set.' });
+          return;
+        }
+
+        const result = await generateStudySetWithGemini(text, fileName, pageCount);
+        await incrementAiImportUsage(gate.userId);
+        res.json(result);
+        return;
+      }
+
       const body = req.body as { text?: string; fileName?: string; pageCount?: number };
       const text = typeof body.text === 'string' ? body.text.trim() : '';
       const fileName = typeof body.fileName === 'string' ? body.fileName : 'document.pdf';

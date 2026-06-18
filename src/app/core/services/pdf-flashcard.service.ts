@@ -1,6 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Flashcard, GeminiStudySetResult } from '../models/mari.models';
+import { AiLimitErrorPayload } from '../models/profile.models';
 import { createId } from '../data/seed-data';
+import { AiLimitError } from '../errors/ai-limit.error';
+import { AuthService } from './auth.service';
 
 export interface PdfReviewResult extends GeminiStudySetResult {
   cards: Flashcard[];
@@ -10,6 +13,8 @@ export interface PdfReviewResult extends GeminiStudySetResult {
 
 @Injectable({ providedIn: 'root' })
 export class PdfFlashcardService {
+  private readonly auth = inject(AuthService);
+
   async reviewPdf(file: File): Promise<PdfReviewResult> {
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
       throw new Error('Please upload a PDF file.');
@@ -36,7 +41,10 @@ export class PdfFlashcardService {
         source: 'gemini',
         excerpt: gemini.overview,
       };
-    } catch {
+    } catch (error) {
+      if (error instanceof AiLimitError) {
+        throw error;
+      }
       const cards = this.generateFlashcards(cleaned);
       if (!cards.length) {
         throw new Error(
@@ -74,14 +82,32 @@ export class PdfFlashcardService {
     fileName: string,
     pageCount: number,
   ): Promise<GeminiStudySetResult> {
+    const token = await this.auth.getAccessToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch('/api/generate-study-set', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ text, fileName, pageCount }),
     });
 
     if (!res.ok) {
-      const err = (await res.json().catch(() => ({}))) as { error?: string };
+      const err = (await res.json().catch(() => ({}))) as AiLimitErrorPayload & { error?: string };
+      if (err.code === 'AI_LIMIT_REACHED' || err.code === 'AUTH_REQUIRED') {
+        throw new AiLimitError(
+          {
+            error: err.error ?? 'AI import not allowed.',
+            code: err.code,
+            plan: err.plan,
+            limit: err.limit,
+            used: err.used,
+          },
+          res.status,
+        );
+      }
       throw new Error(err.error ?? `AI request failed (${res.status})`);
     }
 

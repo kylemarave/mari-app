@@ -1,6 +1,6 @@
 import { Component, computed, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   LucideCheck,
   LucideChevronDown,
@@ -8,9 +8,14 @@ import {
   LucideSparkles,
   LucideUpload,
   LucideX,
+  LucideZap,
 } from '@lucide/angular';
+import { AiLimitError } from '../../core/errors/ai-limit.error';
+import { STRIPE_BILLING_ENABLED } from '../../core/config/features';
 import { AiFlashcardDraft, Flashcard, FlashcardType } from '../../core/models/mari.models';
+import { BillingService } from '../../core/services/billing.service';
 import { MariStoreService } from '../../core/services/mari-store.service';
+import { ProfileService } from '../../core/services/profile.service';
 import { PdfFlashcardService, PdfReviewResult } from '../../core/services/pdf-flashcard.service';
 
 type UploaderStep = 'idle' | 'processing' | 'review' | 'error';
@@ -19,12 +24,14 @@ type UploaderStep = 'idle' | 'processing' | 'review' | 'error';
   selector: 'app-pdf-deck-uploader',
   imports: [
     FormsModule,
+    RouterLink,
     LucideUpload,
     LucideLoaderCircle,
     LucideSparkles,
     LucideCheck,
     LucideX,
     LucideChevronDown,
+    LucideZap,
   ],
   template: `
     <section class="mari-surface-elevated mb-6 overflow-hidden">
@@ -201,11 +208,29 @@ type UploaderStep = 'idle' | 'processing' | 'review' | 'error';
         @case ('error') {
           <div class="p-5 sm:p-6">
             <div
-              class="rounded-[14px] border border-accent-coral/30 bg-accent-coral-bg px-4 py-3 text-sm text-accent-coral-text"
+              class="rounded-[14px] border px-4 py-3 text-sm"
+              [class]="showUpgrade()
+                ? 'border-mari-primary/40 bg-mari-primary-light/40 text-mari-primary-dark'
+                : 'border-accent-coral/30 bg-accent-coral-bg text-accent-coral-text'"
             >
               {{ errorMessage() }}
             </div>
-            <button type="button" (click)="reset()" class="mari-btn-primary mt-4">Try another PDF</button>
+            <div class="mt-4 flex flex-wrap gap-2">
+              @if (showUpgrade()) {
+                @if (billingEnabled) {
+                  <button type="button" (click)="upgrade()" class="mari-btn-primary" [disabled]="billing.loading()">
+                    <svg lucideZap [size]="16"></svg>
+                    {{ billing.loading() ? 'Opening checkout…' : 'Upgrade to Pro' }}
+                  </button>
+                } @else {
+                  <span class="mari-chip bg-mari-primary-light text-mari-primary-dark">
+                    Pro upgrades coming soon
+                  </span>
+                }
+                <a routerLink="/pricing" class="mari-btn-secondary">Compare plans</a>
+              }
+              <button type="button" (click)="reset()" class="mari-btn-secondary">Try another PDF</button>
+            </div>
           </div>
         }
       }
@@ -218,6 +243,9 @@ export class PdfDeckUploaderComponent {
   private readonly pdfService = inject(PdfFlashcardService);
   private readonly store = inject(MariStoreService);
   private readonly router = inject(Router);
+  protected readonly billing = inject(BillingService);
+  protected readonly billingEnabled = STRIPE_BILLING_ENABLED;
+  private readonly profile = inject(ProfileService);
 
   protected readonly step = signal<UploaderStep>('idle');
   protected readonly dragging = signal(false);
@@ -225,6 +253,7 @@ export class PdfDeckUploaderComponent {
   protected readonly review = signal<PdfReviewResult | null>(null);
   protected readonly draftCards = signal<Flashcard[]>([]);
   protected readonly errorMessage = signal('');
+  protected readonly showUpgrade = signal(false);
   protected readonly expandedSections = signal<Record<string, boolean>>({});
   protected deckTitle = '';
 
@@ -298,8 +327,13 @@ export class PdfDeckUploaderComponent {
     this.draftCards.set([]);
     this.deckTitle = '';
     this.errorMessage.set('');
+    this.showUpgrade.set(false);
     this.processingFile.set('');
     this.expandedSections.set({});
+  }
+
+  upgrade(): void {
+    void this.billing.startCheckout();
   }
 
   private async processFile(file: File): Promise<void> {
@@ -323,8 +357,15 @@ export class PdfDeckUploaderComponent {
       }
       this.expandedSections.set(expanded);
       this.step.set('review');
+      void this.profile.refresh();
     } catch (error) {
-      this.errorMessage.set(error instanceof Error ? error.message : 'Failed to process PDF.');
+      if (error instanceof AiLimitError && error.isUpgradeRequired) {
+        this.showUpgrade.set(true);
+        this.errorMessage.set(error.message);
+      } else {
+        this.showUpgrade.set(false);
+        this.errorMessage.set(error instanceof Error ? error.message : 'Failed to process PDF.');
+      }
       this.step.set('error');
     }
   }

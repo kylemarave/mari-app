@@ -1,10 +1,12 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { Injectable, Injector, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthError, Session, SupabaseClient, User, createClient } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
 import { MariStoreService } from './mari-store.service';
 import { PomodoroService } from './pomodoro.service';
+import { ProfileService } from './profile.service';
+import { WorkspaceSyncService } from './workspace-sync.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -12,6 +14,7 @@ export class AuthService {
   private readonly router = inject(Router);
   private readonly store = inject(MariStoreService);
   private readonly pomodoro = inject(PomodoroService);
+  private readonly injector = inject(Injector);
 
   private readonly client: SupabaseClient | null;
   private initPromise: Promise<void> | null = null;
@@ -119,9 +122,13 @@ export class AuthService {
       await this.client.auth.signOut();
     }
     this.applySession(null);
-    this.store.bindUser(null);
-    this.pomodoro.bindUser(null);
+    this.bindWorkspaceUser(null);
     await this.router.navigateByUrl('/login');
+  }
+
+  async getAccessToken(): Promise<string | null> {
+    await this.init();
+    return this.sessionSignal()?.access_token ?? null;
   }
 
   private async bootstrapSession(): Promise<void> {
@@ -142,6 +149,14 @@ export class AuthService {
   private bindWorkspaceUser(userId: string | null): void {
     this.store.bindUser(userId);
     this.pomodoro.bindUser(userId);
+    const profiles = this.injector.get(ProfileService);
+    const workspaceSync = this.injector.get(WorkspaceSyncService);
+    if (userId) {
+      void profiles.refresh();
+    } else {
+      profiles.clear();
+      workspaceSync.clear();
+    }
   }
 
   private applySession(session: Session | null): void {

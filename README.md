@@ -1,45 +1,52 @@
 # Mari App
 
-Student productivity app with AI-powered PDF study sets (Gemini), course folders with custom hex colors, and dark mode.
+Student productivity app with AI-powered PDF study sets (Gemini), course folders, tasks, schedule, and Supabase auth.
 
 ## Development
 
 ```bash
 npm install
+cp .env.example .env   # fill NG_APP_SUPABASE_* and GEMINI_API_KEY
 npm start
 ```
 
-For AI PDF import during local dev, run the API server in a second terminal (proxied via `proxy.conf.json`):
+`npm start` runs the Gemini API server and Angular dev server together (PDF AI import works via proxy).
 
-```bash
-# Set GEMINI_API_KEY in environment (PowerShell example)
-$env:GEMINI_API_KEY="your_key_here"
-npm run dev:api
-```
+Copy `.env.example` to `.env` for local reference — **do not commit `.env`**.
 
-In another terminal:
+### Required local env vars
 
-```bash
-npm start
-```
+| Variable | Purpose |
+|----------|---------|
+| `NG_APP_SUPABASE_URL` | Supabase project URL (client auth) |
+| `NG_APP_SUPABASE_ANON_KEY` | Supabase anon key (client auth) |
+| `GEMINI_API_KEY` | AI PDF → study sets (server only) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-side JWT verification + AI usage limits |
 
-Copy `.env.example` to `.env` for local reference (do not commit `.env`).
+Also set `SUPABASE_URL` to the same URL as `NG_APP_SUPABASE_URL` for the dev API.
+
+### Supabase setup
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Run `supabase/migrations/001_profiles.sql` in **SQL Editor** (plan + AI usage tracking).
+3. Run `supabase/migrations/002_workspace_state.sql` in **SQL Editor** (cloud workspace sync).
+4. **Authentication → URL Configuration** — add `http://localhost:4200` and your production URL to **Redirect URLs**.
+
+### Stripe (optional, not required yet)
+
+Pro checkout is disabled in the app until you configure Stripe. See `PHASE3-STRIPE.md` when ready. Set `STRIPE_BILLING_ENABLED = true` in `src/app/core/config/features.ts` after adding Stripe env vars.
 
 ## Deploy to Vercel
 
-See **[DEPLOY-VERCEL.md](./DEPLOY-VERCEL.md)** for the full checklist (GitHub import, `GEMINI_API_KEY`, verify steps).
-
-Quick summary:
-
-1. Push to GitHub → import on Vercel  
-2. Set `GEMINI_API_KEY` in Vercel → Environment Variables  
-3. Deploy → test PDF upload on `/study-sets`
+See **[DEPLOY-VERCEL.md](./DEPLOY-VERCEL.md)** for the full checklist, env vars, and test plan.
 
 ## Features
 
-- **Study Sets / PDF import** — Upload a PDF on Study Sets; Mari uses Gemini to build a Gizmo-style reviewer (overview, sections, key points) and flashcards. Falls back to local heuristics if the API is unavailable.
-- **Course folders** — Preset accents or custom `#RRGGBB` colors when creating or editing a folder.
-- **Dark mode** — Settings → Appearance (Light / Dark / System), persisted in `localStorage`.
+- **Auth** — Email signup/login, password reset (Supabase)
+- **Study Sets / PDF import** — Upload a PDF; Mari uses Gemini to build a reviewer and flashcards (3 free AI imports/month)
+- **Workspace** — Dashboard, tasks, courses, schedule, Pomodoro, bookmarks — **syncs to Supabase** when logged in (local cache + cloud)
+- **Plans** — Free tier with AI limits; Pro billing coming soon
+- **Dark mode** — Settings → Appearance
 
 ## Production SSR (local)
 
@@ -47,11 +54,12 @@ Quick summary:
 npm run build
 # PowerShell:
 $env:GEMINI_API_KEY="your_key"
+$env:NG_APP_SUPABASE_URL="https://xxx.supabase.co"
+$env:NG_APP_SUPABASE_ANON_KEY="your_anon_key"
+$env:SUPABASE_SERVICE_ROLE_KEY="your_service_role_key"
 npm run serve:ssr:mari-app
 ```
 
-## Gemini API keys (AIzaSy and AQ.)
+## Legal
 
-The server uses **`@google/genai`** with a **REST fallback** so both legacy (`AIzaSy…`) and auth (`AQ.…`) keys from Google AI Studio work on Vercel.
-
-If generation fails with **500**, check the Network response body for the exact error message.
+Placeholder **Privacy** and **Terms** pages live at `/privacy` and `/terms`. Replace copy before a public launch.

@@ -20,7 +20,7 @@ import { sanitizeReturnUrl } from '../../core/utils/sanitize-return-url';
           </span>
           <h1 class="mt-4 text-2xl font-bold text-mari-text sm:text-3xl">Log in to Mari</h1>
           <p class="mt-2 text-sm text-mari-text-secondary">
-            Pick up where you left off — tasks, courses, and study sets sync on this device.
+            Pick up where you left off — your workspace syncs across devices when you are logged in.
           </p>
         </div>
 
@@ -105,17 +105,22 @@ export class LoginPage {
     this.errorMessage.set('');
     this.submitting.set(true);
 
-    const error = await this.auth.signIn(this.email.trim(), this.password);
-    this.submitting.set(false);
+    try {
+      const error = await this.auth.signIn(this.email.trim(), this.password);
 
-    if (error) {
-      this.errorMessage.set(error.message);
-      return;
+      if (error) {
+        this.errorMessage.set(error.message);
+        return;
+      }
+
+      const returnUrl = sanitizeReturnUrl(
+        this.route.snapshot.queryParamMap.get('returnUrl'),
+      );
+      await this.router.navigateByUrl(returnUrl);
+    } catch {
+      this.errorMessage.set('Something went wrong while signing in. Please try again.');
+    } finally {
+      this.submitting.set(false);
     }
-
-    const returnUrl = sanitizeReturnUrl(
-      this.route.snapshot.queryParamMap.get('returnUrl'),
-    );
-    await this.router.navigateByUrl(returnUrl);
   }
 }

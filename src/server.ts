@@ -6,14 +6,21 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
-import { registerGeminiStudyRoutes } from './server/gemini-study.js';
+import { registerMariApiRoutes } from './server/api-routes.js';
+import { handleStripeWebhook } from './server/stripe-routes.js';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
-app.use(express.json({ limit: '2mb' }));
 
-registerGeminiStudyRoutes(app);
+app.post(
+  '/api/stripe-webhook',
+  express.raw({ type: 'application/json' }),
+  (req, res) => void handleStripeWebhook(req, res),
+);
+
+app.use(express.json({ limit: '2mb' }));
+registerMariApiRoutes(app);
 
 const angularApp = new AngularNodeAppEngine();
 

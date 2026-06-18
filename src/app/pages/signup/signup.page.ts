@@ -89,8 +89,7 @@ import { AuthService } from '../../core/services/auth.service';
           </button>
 
           <p class="text-center text-[11px] leading-relaxed text-mari-text-tertiary">
-            Data is stored locally on this device per account (localStorage). Cloud sync is planned
-            for a later phase.
+            Workspace data syncs to your account in the cloud. Course file blobs stay on each device for now.
           </p>
         </form>
 

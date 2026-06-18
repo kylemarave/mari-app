@@ -1,4 +1,4 @@
-    import { computed, Injectable, inject, signal } from '@angular/core';
+import { computed, Injectable, Injector, inject, signal } from '@angular/core';
 import { createId, EMPTY_STATE, profileFromSignup } from '../data/seed-data';
 import {
   AppState,
@@ -10,23 +10,24 @@ import {
   TaskStatus,
   StudyDeck,
   ScheduleEntry,
-  ScheduleBlock,
   CourseAccent,
   CourseFile,
   CourseFolder,
   CountdownEvent,
 } from '../models/mari.models';
+import {
+  loadLocalState,
+  saveLocalState,
+} from '../utils/workspace-state.utils';
 import { CourseFileStorageService } from './course-file-storage.service';
-
-function storageKeyForUser(userId: string): string {
-  return `mari-app-state-${userId}`;
-}
+import { WorkspaceSyncService } from './workspace-sync.service';
 
 @Injectable({ providedIn: 'root' })
 export class MariStoreService {
   private userId: string | null = null;
   private readonly state = signal<AppState>(structuredClone(EMPTY_STATE));
   private readonly fileStorage = inject(CourseFileStorageService);
+  private readonly injector = inject(Injector);
 
   readonly student = computed(() => this.state().student);
   readonly countdown = computed(() => this.state().countdown);
@@ -324,11 +325,17 @@ export class MariStoreService {
   bindUser(userId: string | null): void {
     this.userId = userId;
     this.fileStorage.bindUser(userId);
+    this.syncService.clear();
+
     if (!userId) {
       this.state.set(structuredClone(EMPTY_STATE));
       return;
     }
-    this.state.set(this.loadStateForUser(userId));
+
+    const local = loadLocalState(userId);
+    this.state.set(local);
+    const baseline = this.state();
+    void this.reconcileWithCloud(userId, baseline);
   }
 
   initializeNewUser(
@@ -345,6 +352,20 @@ export class MariStoreService {
     this.persist(next);
   }
 
+  private get syncService(): WorkspaceSyncService {
+    return this.injector.get(WorkspaceSyncService);
+  }
+
+  private async reconcileWithCloud(userId: string, baseline: AppState): Promise<void> {
+    const merged = await this.syncService.reconcile(userId, baseline);
+    if (this.state() !== baseline) {
+      this.syncService.schedulePush(userId, this.state());
+      return;
+    }
+    this.state.set(merged);
+    saveLocalState(userId, merged, this.syncService.lastSyncedAt() ?? undefined);
+  }
+
   private patch(partial: Partial<AppState>): void {
     const next = { ...this.state(), ...partial };
     this.state.set(next);
@@ -359,51 +380,9 @@ export class MariStoreService {
     }));
   }
 
-  private loadStateForUser(userId: string): AppState {
-    if (typeof localStorage === 'undefined') return structuredClone(EMPTY_STATE);
-    try {
-      const key = storageKeyForUser(userId);
-      const raw = localStorage.getItem(key);
-      if (!raw) return structuredClone(EMPTY_STATE);
-      return this.parseStoredState(raw);
-    } catch {
-      return structuredClone(EMPTY_STATE);
-    }
-  }
-
-  private parseStoredState(raw: string): AppState {
-    const parsed = JSON.parse(raw) as Partial<AppState> & {
-      scheduleBlocks?: ScheduleBlock[];
-      calendarDays?: { day: number; dots: CourseAccent[] }[];
-    };
-    const merged = { ...structuredClone(EMPTY_STATE), ...parsed } as AppState;
-    if (parsed.scheduleBlocks && !parsed.scheduleEntries) {
-      merged.scheduleEntries = this.migrateLegacySchedule(parsed);
-    } else if (!merged.scheduleEntries) {
-      merged.scheduleEntries = [];
-    }
-    return merged;
-  }
-
-  private migrateLegacySchedule(
-    parsed: Partial<AppState> & { scheduleBlocks?: ScheduleBlock[] },
-  ): ScheduleEntry[] {
-    const today = this.todayIso();
-    const legacy = parsed.scheduleBlocks ?? [];
-    if (!legacy.length) return [];
-    return legacy.map((block, index) => ({
-      id: createId(`sch-m${index}`),
-      date: today,
-      ...block,
-    }));
-  }
-
   private persist(state: AppState): void {
-    if (typeof localStorage === 'undefined' || !this.userId) return;
-    try {
-      localStorage.setItem(storageKeyForUser(this.userId), JSON.stringify(state));
-    } catch {
-      /* storage full or unavailable */
-    }
+    if (!this.userId) return;
+    saveLocalState(this.userId, state);
+    this.syncService.schedulePush(this.userId, state);
   }
 }
