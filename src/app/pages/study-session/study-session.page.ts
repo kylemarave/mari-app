@@ -1,6 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { map } from 'rxjs';
 import { LucideArrowLeft, LucideFileText, LucideTrash2 } from '@lucide/angular';
 import { MariStoreService } from '../../core/services/mari-store.service';
 import { FlashcardComponent } from '../../shared/flashcard/flashcard.component';
@@ -96,10 +98,19 @@ export class StudySessionPage {
   protected readonly store = inject(MariStoreService);
   protected readonly confirmDelete = signal(false);
 
-  protected readonly deck = computed(() => {
-    const id = this.route.snapshot.paramMap.get('deckId') ?? '';
-    return this.store.getDeck(id);
-  });
+  private readonly deckIdParam = toSignal(
+    this.route.paramMap.pipe(map((p) => p.get('deckId') ?? '')),
+    { initialValue: '' },
+  );
+
+  protected readonly deck = computed(() => this.store.getDeck(this.deckIdParam()));
+
+  constructor() {
+    effect(() => {
+      this.deckIdParam();
+      this.confirmDelete.set(false);
+    });
+  }
 
   progress(d: { learned: number; cards: unknown[] }): number {
     return d.cards.length ? (d.learned / d.cards.length) * 100 : 0;

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { LucideExternalLink, LucideLink2, LucidePlus, LucideTrash2 } from '@lucide/angular';
 import { BookmarkLink } from '../../core/models/mari.models';
 import { MariStoreService } from '../../core/services/mari-store.service';
+import { bookmarkHref, safeHttpUrl } from '../../core/utils/safe-url';
 
 @Component({
   selector: 'app-bookmark-panel',
@@ -32,6 +33,8 @@ import { MariStoreService } from '../../core/services/mari-store.service';
             target="_blank"
             rel="noopener noreferrer"
             class="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-mari-text-tertiary transition-colors hover:bg-mari-primary-light hover:text-mari-primary"
+            [class.pointer-events-none]="!isSafeUrl(link.url)"
+            [class.opacity-40]="!isSafeUrl(link.url)"
             [attr.aria-label]="'Open ' + link.title"
           >
             <svg lucideExternalLink [size]="16"></svg>
@@ -81,19 +84,25 @@ export class BookmarkPanelComponent {
   protected category = 'Reference';
 
   formatUrl(url: string): string {
-    return url.startsWith('http') ? url : `https://${url}`;
+    return bookmarkHref(url);
+  }
+
+  isSafeUrl(url: string): boolean {
+    return safeHttpUrl(url) !== null;
   }
 
   canAdd(): boolean {
-    return Boolean(this.title.trim() && this.url.trim());
+    return Boolean(this.title.trim() && safeHttpUrl(this.url));
   }
 
   addLink(): void {
     if (!this.canAdd()) return;
+    const href = safeHttpUrl(this.url);
+    if (!href) return;
     const favicon = this.title.trim().slice(0, 2).toUpperCase();
     this.store.addBookmark({
       title: this.title.trim(),
-      url: this.url.trim(),
+      url: href,
       category: this.category.trim() || 'Reference',
       favicon,
       courseId: this.courseId(),

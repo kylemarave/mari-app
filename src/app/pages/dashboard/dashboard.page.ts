@@ -63,7 +63,7 @@ import { UtilityGlancePanelComponent } from '../../shared/utility-glance-panel/u
         <div class="flex flex-wrap gap-2">
           <a routerLink="/tasks" class="mari-btn-primary">
             <svg lucideCheckSquare [size]="14"></svg>
-            Add task
+            Go to tasks
           </a>
           <a
             routerLink="/study-sets"

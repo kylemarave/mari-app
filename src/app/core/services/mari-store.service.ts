@@ -1,5 +1,5 @@
     import { computed, Injectable, inject, signal } from '@angular/core';
-import { createId, SEED_STATE } from '../data/seed-data';
+import { createId, EMPTY_STATE, profileFromSignup } from '../data/seed-data';
 import {
   AppState,
   BookmarkLink,
@@ -18,11 +18,14 @@ import {
 } from '../models/mari.models';
 import { CourseFileStorageService } from './course-file-storage.service';
 
-const STORAGE_KEY = 'mari-app-state';
+function storageKeyForUser(userId: string): string {
+  return `mari-app-state-${userId}`;
+}
 
 @Injectable({ providedIn: 'root' })
 export class MariStoreService {
-  private readonly state = signal<AppState>(this.loadState());
+  private userId: string | null = null;
+  private readonly state = signal<AppState>(structuredClone(EMPTY_STATE));
   private readonly fileStorage = inject(CourseFileStorageService);
 
   readonly student = computed(() => this.state().student);
@@ -315,7 +318,31 @@ export class MariStoreService {
   }
 
   resetProgress(): void {
-    this.patch(SEED_STATE);
+    this.patch(structuredClone(EMPTY_STATE));
+  }
+
+  bindUser(userId: string | null): void {
+    this.userId = userId;
+    this.fileStorage.bindUser(userId);
+    if (!userId) {
+      this.state.set(structuredClone(EMPTY_STATE));
+      return;
+    }
+    this.state.set(this.loadStateForUser(userId));
+  }
+
+  initializeNewUser(
+    userId: string,
+    profile: { name?: string; email?: string },
+  ): void {
+    this.userId = userId;
+    this.fileStorage.bindUser(userId);
+    const next: AppState = {
+      ...structuredClone(EMPTY_STATE),
+      student: profileFromSignup(profile.name, profile.email),
+    };
+    this.state.set(next);
+    this.persist(next);
   }
 
   private patch(partial: Partial<AppState>): void {
@@ -332,25 +359,30 @@ export class MariStoreService {
     }));
   }
 
-  private loadState(): AppState {
-    if (typeof localStorage === 'undefined') return structuredClone(SEED_STATE);
+  private loadStateForUser(userId: string): AppState {
+    if (typeof localStorage === 'undefined') return structuredClone(EMPTY_STATE);
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return structuredClone(SEED_STATE);
-      const parsed = JSON.parse(raw) as Partial<AppState> & {
-        scheduleBlocks?: ScheduleBlock[];
-        calendarDays?: { day: number; dots: CourseAccent[] }[];
-      };
-      const merged = { ...structuredClone(SEED_STATE), ...parsed } as AppState;
-      if (parsed.scheduleBlocks && !parsed.scheduleEntries) {
-        merged.scheduleEntries = this.migrateLegacySchedule(parsed);
-      } else if (!merged.scheduleEntries) {
-        merged.scheduleEntries = structuredClone(SEED_STATE.scheduleEntries);
-      }
-      return merged;
+      const key = storageKeyForUser(userId);
+      const raw = localStorage.getItem(key);
+      if (!raw) return structuredClone(EMPTY_STATE);
+      return this.parseStoredState(raw);
     } catch {
-      return structuredClone(SEED_STATE);
+      return structuredClone(EMPTY_STATE);
     }
+  }
+
+  private parseStoredState(raw: string): AppState {
+    const parsed = JSON.parse(raw) as Partial<AppState> & {
+      scheduleBlocks?: ScheduleBlock[];
+      calendarDays?: { day: number; dots: CourseAccent[] }[];
+    };
+    const merged = { ...structuredClone(EMPTY_STATE), ...parsed } as AppState;
+    if (parsed.scheduleBlocks && !parsed.scheduleEntries) {
+      merged.scheduleEntries = this.migrateLegacySchedule(parsed);
+    } else if (!merged.scheduleEntries) {
+      merged.scheduleEntries = [];
+    }
+    return merged;
   }
 
   private migrateLegacySchedule(
@@ -358,7 +390,7 @@ export class MariStoreService {
   ): ScheduleEntry[] {
     const today = this.todayIso();
     const legacy = parsed.scheduleBlocks ?? [];
-    if (!legacy.length) return structuredClone(SEED_STATE.scheduleEntries);
+    if (!legacy.length) return [];
     return legacy.map((block, index) => ({
       id: createId(`sch-m${index}`),
       date: today,
@@ -367,9 +399,9 @@ export class MariStoreService {
   }
 
   private persist(state: AppState): void {
-    if (typeof localStorage === 'undefined') return;
+    if (typeof localStorage === 'undefined' || !this.userId) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(storageKeyForUser(this.userId), JSON.stringify(state));
     } catch {
       /* storage full or unavailable */
     }

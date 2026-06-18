@@ -15,7 +15,7 @@ interface PomodoroPersisted {
   settings: PomodoroSettings;
 }
 
-const STORAGE_KEY = 'mari-pomodoro-state';
+const STORAGE_PREFIX = 'mari-pomodoro-state';
 const DEFAULT_SETTINGS: PomodoroSettings = {
   focusMinutes: 25,
   shortBreakMinutes: 5,
@@ -23,14 +23,19 @@ const DEFAULT_SETTINGS: PomodoroSettings = {
   sessionsUntilLongBreak: 4,
 };
 
+function storageKeyForUser(userId: string | null): string {
+  return userId ? `${STORAGE_PREFIX}-${userId}` : STORAGE_PREFIX;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PomodoroService {
-  private readonly settings = signal<PomodoroSettings>(this.loadPersisted().settings);
+  private userId: string | null = null;
+  private readonly settings = signal<PomodoroSettings>(DEFAULT_SETTINGS);
   private readonly phase = signal<PomodoroPhase>('focus');
   private readonly secondsRemaining = signal(DEFAULT_SETTINGS.focusMinutes * 60);
   private readonly running = signal(false);
   private readonly sessionsInCycle = signal(0);
-  private readonly completedToday = signal(this.loadPersisted().completedToday);
+  private readonly completedToday = signal(0);
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
   readonly isRunning = computed(() => this.running());
@@ -77,6 +82,17 @@ export class PomodoroService {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   });
+
+  bindUser(userId: string | null): void {
+    this.pause();
+    this.userId = userId;
+    const persisted = this.loadPersisted();
+    this.settings.set(persisted.settings);
+    this.completedToday.set(persisted.completedToday);
+    this.phase.set('focus');
+    this.sessionsInCycle.set(0);
+    this.secondsRemaining.set(persisted.settings.focusMinutes * 60);
+  }
 
   start(): void {
     if (this.running()) return;
@@ -175,7 +191,7 @@ export class PomodoroService {
     };
     if (typeof localStorage === 'undefined') return fallback;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(storageKeyForUser(this.userId));
       if (!raw) return fallback;
       const parsed = JSON.parse(raw) as Partial<PomodoroPersisted>;
       const settings = { ...DEFAULT_SETTINGS, ...parsed.settings };
@@ -200,7 +216,7 @@ export class PomodoroService {
   private savePersisted(state: PomodoroPersisted): void {
     if (typeof localStorage === 'undefined') return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(storageKeyForUser(this.userId), JSON.stringify(state));
     } catch {
       /* ignore */
     }

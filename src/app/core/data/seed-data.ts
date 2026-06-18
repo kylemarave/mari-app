@@ -82,6 +82,44 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/study-sets', label: 'Study Sets', mobileLabel: 'Study', icon: 'study-sets' },
 ];
 
+/** Empty workspace for new accounts (not demo seed data). */
+export const EMPTY_STATE: AppState = {
+  student: {
+    initials: 'ST',
+    name: 'Student',
+    shortName: 'Student',
+    university: '',
+    program: '',
+  },
+  countdown: {
+    label: '',
+    daysLeft: 0,
+    progress: 0,
+  },
+  tasks: [],
+  courses: [],
+  courseFiles: {},
+  bookmarks: [],
+  scheduleEntries: [],
+  studyDecks: [],
+};
+
+export function profileFromSignup(name?: string, email?: string): AppState['student'] {
+  const displayName = name?.trim() || email?.split('@')[0] || 'Student';
+  const parts = displayName.split(/\s+/).filter(Boolean);
+  const initials = parts
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('')
+    .slice(0, 2);
+  return {
+    initials: initials || 'ST',
+    name: displayName,
+    shortName: parts[0] ?? displayName,
+    university: '',
+    program: '',
+  };
+}
+
 export const SEED_STATE: AppState = {
   student: {
     initials: 'MA',

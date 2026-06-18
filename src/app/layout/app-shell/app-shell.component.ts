@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { LucideBell, LucideSettings, LucideTimer } from '@lucide/angular';
+import { LucideBell, LucideLogOut, LucideSettings, LucideTimer } from '@lucide/angular';
+import { AuthService } from '../../core/services/auth.service';
 import { MariStoreService } from '../../core/services/mari-store.service';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 import { CountdownBannerComponent } from '../../shared/countdown-banner/countdown-banner.component';
@@ -21,6 +22,7 @@ import { UtilitySidebarComponent } from '../../shared/utility-sidebar/utility-si
     LucideSettings,
     LucideBell,
     LucideTimer,
+    LucideLogOut,
   ],
   template: `
     <div class="flex h-full overflow-hidden mari-bg-mesh">
@@ -62,7 +64,7 @@ import { UtilitySidebarComponent } from '../../shared/utility-sidebar/utility-si
               <a
                 routerLink="/tasks"
                 class="relative hidden rounded-[10px] p-2.5 text-mari-text-secondary transition-colors hover:bg-mari-bg-secondary hover:text-mari-text sm:flex"
-                aria-label="Tasks"
+                aria-label="High-priority tasks"
               >
                 <svg lucideBell [size]="20"></svg>
                 @if (store.highPriorityTasks().length; as count) {
@@ -81,12 +83,20 @@ import { UtilitySidebarComponent } from '../../shared/utility-sidebar/utility-si
               >
                 <svg lucideSettings [size]="20"></svg>
               </a>
+              <button
+                type="button"
+                (click)="logout()"
+                class="rounded-[10px] p-2.5 text-mari-text-secondary transition-colors hover:bg-mari-bg-secondary hover:text-mari-text"
+                aria-label="Log out"
+              >
+                <svg lucideLogOut [size]="20"></svg>
+              </button>
             </div>
           </div>
 
-          @if (store.countdown(); as event) {
+          @if (store.countdown().label) {
             <div class="border-t border-mari-border/60 px-4 pb-3 pt-2 lg:px-8">
-              <app-countdown-banner [event]="event" />
+              <app-countdown-banner [event]="store.countdown()" />
             </div>
           }
         </header>
@@ -109,10 +119,15 @@ import { UtilitySidebarComponent } from '../../shared/utility-sidebar/utility-si
 })
 export class AppShellComponent {
   protected readonly store = inject(MariStoreService);
+  private readonly auth = inject(AuthService);
 
   protected readonly todayLabel = new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
   }).format(new Date());
+
+  protected logout(): void {
+    void this.auth.signOut();
+  }
 }

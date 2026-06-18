@@ -1,5 +1,7 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { map } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { LucideArrowLeft, LucideFileStack, LucideLink2, LucidePalette } from '@lucide/angular';
 import { CourseAccent } from '../../core/models/mari.models';
@@ -106,7 +108,12 @@ export class CourseDetailPage {
   private readonly route = inject(ActivatedRoute);
   protected readonly store = inject(MariStoreService);
 
-  protected readonly courseId = computed(() => this.route.snapshot.paramMap.get('courseId') ?? '');
+  private readonly courseIdParam = toSignal(
+    this.route.paramMap.pipe(map((p) => p.get('courseId') ?? '')),
+    { initialValue: '' },
+  );
+
+  protected readonly courseId = computed(() => this.courseIdParam());
   protected readonly course = computed(() => this.store.getCourse(this.courseId()));
   protected readonly files = computed(() => this.store.getCourseFiles(this.courseId()));
   protected readonly bookmarks = computed(() => this.store.getBookmarksForCourse(this.courseId()));

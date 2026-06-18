@@ -1,13 +1,14 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { LucideRotateCcw, LucideSave, LucideUserCog } from '@lucide/angular';
+import { LucideLogOut, LucideRotateCcw, LucideSave, LucideUserCog } from '@lucide/angular';
+import { AuthService } from '../../core/services/auth.service';
 import { MariStoreService } from '../../core/services/mari-store.service';
 import { VirtualIdCardComponent } from '../../shared/virtual-id-card/virtual-id-card.component';
 
 @Component({
   selector: 'app-settings-page',
-  imports: [FormsModule, VirtualIdCardComponent, RouterLink, LucideRotateCcw, LucideSave, LucideUserCog],
+  imports: [FormsModule, VirtualIdCardComponent, RouterLink, LucideRotateCcw, LucideSave, LucideUserCog, LucideLogOut],
   template: `
     <div class="mari-page mx-auto max-w-xl">
       <div class="mb-6">
@@ -85,9 +86,20 @@ import { VirtualIdCardComponent } from '../../shared/virtual-id-card/virtual-id-
         }
       </form>
 
+      <section class="mari-surface-elevated mb-5 p-5">
+        <h2 class="text-sm font-bold uppercase tracking-wide text-mari-text-tertiary">Account</h2>
+        @if (auth.user(); as user) {
+          <p class="mt-2 text-sm text-mari-text-secondary">{{ user.email }}</p>
+        }
+        <button type="button" (click)="logout()" class="mari-btn-secondary mt-4 w-full">
+          <svg lucideLogOut [size]="16"></svg>
+          Log out
+        </button>
+      </section>
+
       <section class="mt-5 rounded-[16px] border border-accent-coral/40 bg-accent-coral-bg/40 p-5">
-        <h2 class="font-semibold text-accent-coral-text">Reset app data</h2>
-        <p class="mt-1 text-sm text-mari-text-secondary">Restore defaults for tasks, study progress, and profile.</p>
+        <h2 class="font-semibold text-accent-coral-text">Reset workspace</h2>
+        <p class="mt-1 text-sm text-mari-text-secondary">Clear tasks, courses, study sets, and profile fields.</p>
         <button
           type="button"
           (click)="reset()"
@@ -104,6 +116,7 @@ import { VirtualIdCardComponent } from '../../shared/virtual-id-card/virtual-id-
 })
 export class SettingsPage {
   private readonly store = inject(MariStoreService);
+  protected readonly auth = inject(AuthService);
   protected form = { ...this.store.student() };
   protected countdownForm = { ...this.store.countdown() };
   protected readonly saved = signal(false);
@@ -119,10 +132,14 @@ export class SettingsPage {
   }
 
   reset(): void {
-    if (confirm('Reset all app data to defaults?')) {
+    if (confirm('Reset your workspace to empty? This cannot be undone.')) {
       this.store.resetProgress();
       this.form = { ...this.store.student() };
       this.countdownForm = { ...this.store.countdown() };
     }
+  }
+
+  logout(): void {
+    void this.auth.signOut();
   }
 }

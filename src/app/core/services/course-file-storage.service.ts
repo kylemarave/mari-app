@@ -7,22 +7,29 @@ const STORE_NAME = 'blobs';
 @Injectable({ providedIn: 'root' })
 export class CourseFileStorageService {
   private dbPromise: Promise<IDBDatabase> | null = null;
+  private userId: string | null = null;
+
+  bindUser(userId: string | null): void {
+    this.userId = userId;
+  }
 
   async saveBlob(fileId: string, blob: Blob): Promise<void> {
     const db = await this.openDb();
-    await this.runTransaction(db, 'readwrite', (store) => store.put(blob, fileId));
+    await this.runTransaction(db, 'readwrite', (store) => store.put(blob, this.storageKey(fileId)));
   }
 
   async getBlob(fileId: string): Promise<Blob | null> {
     if (typeof indexedDB === 'undefined') return null;
     const db = await this.openDb();
-    return this.runTransaction<Blob | null>(db, 'readonly', (store) => store.get(fileId));
+    return this.runTransaction<Blob | null>(db, 'readonly', (store) =>
+      store.get(this.storageKey(fileId)),
+    );
   }
 
   async deleteBlob(fileId: string): Promise<void> {
     if (typeof indexedDB === 'undefined') return;
     const db = await this.openDb();
-    await this.runTransaction(db, 'readwrite', (store) => store.delete(fileId));
+    await this.runTransaction(db, 'readwrite', (store) => store.delete(this.storageKey(fileId)));
   }
 
   async deleteBlobs(fileIds: string[]): Promise<void> {
@@ -35,6 +42,10 @@ export class CourseFileStorageService {
 
   revokeObjectUrl(url: string): void {
     URL.revokeObjectURL(url);
+  }
+
+  private storageKey(fileId: string): string {
+    return this.userId ? `${this.userId}:${fileId}` : fileId;
   }
 
   private openDb(): Promise<IDBDatabase> {
