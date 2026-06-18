@@ -251,4 +251,446 @@
   .mari-product-frame-chrome {
     @apply flex items-center gap-1.5 border-b border-mari-border/80 px-3 py-2.5;
   }
+
+  /* ── Landing page animations ── */
+  .mari-landing-hero {
+    @apply relative overflow-hidden border-b border-mari-border/60;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 20%, rgb(238 237 254 / 0.9) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 90% 10%, rgb(230 241 251 / 0.7) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 70% 90%, rgb(225 245 238 / 0.5) 0%, transparent 55%),
+      #fcfcfd;
+  }
+
+  .mari-landing-blob {
+    @apply pointer-events-none absolute rounded-full blur-3xl;
+    animation: mari-landing-blob-drift 18s ease-in-out infinite;
+  }
+
+  .mari-landing-blob-1 {
+    top: -8%;
+    left: -5%;
+    width: 320px;
+    height: 320px;
+    background: rgb(83 74 183 / 0.18);
+    animation-delay: 0s;
+  }
+
+  .mari-landing-blob-2 {
+    top: 20%;
+    right: -8%;
+    width: 280px;
+    height: 280px;
+    background: rgb(29 158 117 / 0.14);
+    animation-delay: -6s;
+  }
+
+  .mari-landing-blob-3 {
+    bottom: -10%;
+    left: 35%;
+    width: 240px;
+    height: 240px;
+    background: rgb(216 90 48 / 0.1);
+    animation-delay: -12s;
+  }
+
+  .mari-landing-gradient-text {
+    background: linear-gradient(
+      120deg,
+      var(--color-mari-primary-dark) 0%,
+      var(--color-mari-primary) 35%,
+      #1d9e75 70%,
+      var(--color-mari-primary-dark) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: mari-landing-gradient-shift 6s ease infinite;
+  }
+
+  .mari-landing-sticker {
+    @apply absolute flex items-center justify-center rounded-2xl border border-white/80 bg-white/90 text-xl shadow-md backdrop-blur-sm;
+    animation: mari-landing-float 5s ease-in-out infinite;
+    box-shadow: var(--shadow-mari-md);
+  }
+
+  .mari-landing-sticker-1 {
+    top: -12px;
+    right: -8px;
+    width: 48px;
+    height: 48px;
+    animation-delay: 0s;
+    transform: rotate(8deg);
+  }
+
+  .mari-landing-sticker-2 {
+    bottom: 24px;
+    left: -16px;
+    width: 44px;
+    height: 44px;
+    animation-delay: -1.5s;
+    transform: rotate(-12deg);
+  }
+
+  .mari-landing-sticker-3 {
+    top: 40%;
+    right: -20px;
+    width: 40px;
+    height: 40px;
+    animation-delay: -3s;
+    transform: rotate(6deg);
+  }
+
+  .mari-landing-frame-float {
+    animation: mari-landing-float 6s ease-in-out infinite;
+    animation-delay: -2s;
+  }
+
+  .mari-landing-marquee-track {
+    @apply flex w-max gap-8;
+    animation: mari-landing-marquee 28s linear infinite;
+  }
+
+  .mari-landing-marquee-item {
+    @apply flex shrink-0 items-center gap-2 rounded-full border border-mari-border/80 bg-mari-bg/90 px-4 py-2 text-sm font-medium text-mari-text-secondary shadow-sm backdrop-blur-sm;
+  }
+
+  .mari-landing-reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .mari-landing-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .mari-landing-reveal-delay-1 {
+    transition-delay: 0.1s;
+  }
+
+  .mari-landing-reveal-delay-2 {
+    transition-delay: 0.2s;
+  }
+
+  .mari-landing-reveal-delay-3 {
+    transition-delay: 0.3s;
+  }
+
+  .mari-landing-enter {
+    animation: mari-landing-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .mari-landing-enter-delay-1 {
+    animation-delay: 0.12s;
+  }
+
+  .mari-landing-enter-delay-2 {
+    animation-delay: 0.24s;
+  }
+
+  .mari-landing-enter-delay-3 {
+    animation-delay: 0.36s;
+  }
+
+  .mari-landing-enter-delay-4 {
+    animation-delay: 0.48s;
+  }
+
+  .mari-landing-word-swap {
+    @apply inline-block min-w-[9ch] text-left;
+    animation: mari-landing-word-pop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .mari-landing-feature-card {
+    @apply relative overflow-hidden rounded-[14px] border border-mari-border bg-mari-bg p-5 transition-all duration-300;
+    box-shadow: var(--shadow-mari-sm);
+  }
+
+  .mari-landing-feature-card::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: linear-gradient(
+      135deg,
+      rgb(238 237 254 / 0.6) 0%,
+      transparent 60%
+    );
+  }
+
+  .mari-landing-feature-card:hover {
+    transform: translateY(-4px) rotate(-0.5deg);
+    box-shadow: var(--shadow-mari-lg);
+  }
+
+  .mari-landing-feature-card:hover::before {
+    opacity: 1;
+  }
+
+  .mari-landing-flashcard {
+    @apply rounded-[10px] border border-mari-primary-muted/50 bg-gradient-to-br from-mari-primary-light to-mari-bg px-3 py-2.5 text-left;
+    animation: mari-landing-flashcard-pulse 3s ease-in-out infinite;
+  }
+
+  .mari-landing-pomodoro-ring {
+    animation: mari-landing-pulse-ring 2.5s ease-in-out infinite;
+  }
+
+  .mari-landing-kanban-card {
+    animation: mari-landing-slide-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .mari-landing-kanban-card:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .mari-landing-kanban-card:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .mari-landing-kanban-card:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  .mari-landing-course-tile {
+    @apply transition-transform duration-300;
+  }
+
+  .mari-landing-course-tile:hover {
+    transform: scale(1.06) rotate(-2deg);
+  }
+
+  .mari-landing-benefit {
+    @apply relative overflow-hidden rounded-[12px] border border-mari-border bg-mari-bg p-5 text-center transition-transform duration-300 sm:text-left;
+    box-shadow: var(--shadow-mari-sm);
+  }
+
+  .mari-landing-benefit:hover {
+    transform: translateY(-3px);
+  }
+
+  .mari-landing-benefit-emoji {
+    @apply inline-block text-2xl;
+    animation: mari-landing-wiggle 3s ease-in-out infinite;
+  }
+
+  .mari-landing-cta {
+    @apply relative overflow-hidden rounded-2xl border border-mari-primary-muted/40 px-6 py-10 text-center sm:px-10 sm:py-12;
+    background: linear-gradient(
+      135deg,
+      rgb(238 237 254 / 0.9) 0%,
+      #ffffff 40%,
+      rgb(225 245 238 / 0.5) 100%
+    );
+    box-shadow: var(--shadow-mari-lg);
+  }
+
+  .mari-landing-cta::before {
+    content: '';
+    @apply pointer-events-none absolute -inset-px rounded-2xl opacity-60;
+    background: linear-gradient(
+      90deg,
+      var(--color-mari-primary),
+      var(--color-accent-teal),
+      var(--color-accent-coral),
+      var(--color-mari-primary)
+    );
+    background-size: 300% 100%;
+    animation: mari-landing-gradient-shift 8s linear infinite;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    padding: 2px;
+    -webkit-mask-composite: xor;
+  }
+
+  .mari-landing-stat-pop {
+    animation: mari-landing-stat-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .mari-landing-stat-pop:nth-child(1) {
+    animation-delay: 0.5s;
+  }
+
+  .mari-landing-stat-pop:nth-child(2) {
+    animation-delay: 0.62s;
+  }
+
+  .mari-landing-stat-pop:nth-child(3) {
+    animation-delay: 0.74s;
+  }
+
+  .mari-landing-stat-pop:nth-child(4) {
+    animation-delay: 0.86s;
+  }
+
+  .mari-landing-spotlight-panel {
+    @apply relative overflow-hidden rounded-[12px] border border-mari-border bg-mari-bg p-5 sm:p-6;
+    box-shadow: var(--shadow-mari-md);
+  }
+
+  .mari-landing-spotlight-panel::after {
+    content: '';
+    @apply pointer-events-none absolute -right-8 -top-8 size-32 rounded-full opacity-40 blur-2xl;
+    background: var(--spotlight-glow, rgb(83 74 183 / 0.2));
+  }
+
+  .mari-landing-progress-bar {
+    animation: mari-landing-progress-fill 2s cubic-bezier(0.22, 1, 0.36, 1) 0.8s both;
+  }
+}
+
+@keyframes mari-landing-blob-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 15px) scale(0.95);
+  }
+}
+
+@keyframes mari-landing-gradient-shift {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes mari-landing-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--landing-rotate, 0deg));
+  }
+  50% {
+    transform: translateY(-10px) rotate(calc(var(--landing-rotate, 0deg) + 3deg));
+  }
+}
+
+@keyframes mari-landing-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes mari-landing-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mari-landing-word-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes mari-landing-flashcard-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(83 74 183 / 0.15);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgb(83 74 183 / 0);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes mari-landing-pulse-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(83 74 183 / 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgb(83 74 183 / 0);
+  }
+}
+
+@keyframes mari-landing-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mari-landing-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-6deg);
+  }
+  75% {
+    transform: rotate(6deg);
+  }
+}
+
+@keyframes mari-landing-stat-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes mari-landing-progress-fill {
+  from {
+    width: 0%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mari-landing-blob,
+  .mari-landing-sticker,
+  .mari-landing-frame-float,
+  .mari-landing-marquee-track,
+  .mari-landing-gradient-text,
+  .mari-landing-enter,
+  .mari-landing-flashcard,
+  .mari-landing-pomodoro-ring,
+  .mari-landing-kanban-card,
+  .mari-landing-benefit-emoji,
+  .mari-landing-stat-pop,
+  .mari-landing-progress-bar,
+  .mari-landing-word-swap,
+  .mari-landing-cta::before {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .mari-landing-reveal {
+    opacity: 1;
+    transform: none;
+  }
 }
